@@ -17,7 +17,7 @@ In Node.js/io.js:
 // load lodash
 var _ = require('lodash');
 // load lodash-migrate after
-require('lodash-migrate);
+require('lodash-migrate');
 
 // later when using API not supported by the latest lodash release
 _.first([1, 2, 3], 2);
