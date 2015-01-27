@@ -1,5 +1,7 @@
 var _ = require('lodash-compat'),
-    old = require('lodash'),
+    old = require('lodash');
+
+var cache = Object.create(null),
     inspect = _.partial(require('util').inspect, _, { 'colors': true }),
     trunc = _.partial(_.trunc, _, 80);
 
@@ -17,12 +19,19 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
         ) {
       args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
       args = args.replace(/\n */g, ' ');
-      console.info([
+
+      var message = [
         'lodash-migrate: _.' + name + '(' + trunc(args) + ')',
         '  v' + old.VERSION + ' => ' + trunc(inspect(oldResult)),
         '  v' + _.VERSION   + ' => ' + trunc(inspect(newResult)),
         ''
-      ].join('\n'));
+      ].join('\n');
+
+      // only log a specific message once
+      if (!cache[message]) {
+        cache[message] = true;
+        console.log(message);
+      }
     }
     return oldResult;
   });

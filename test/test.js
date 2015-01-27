@@ -124,6 +124,15 @@ QUnit.module('logging');
     deepEqual(lastLog, makeEntry('first', [array, 2, undefined], [1, 2], 1));
   });
 
+  test('should log a specific message once', 2, function() {
+    old.keys('once');
+    deepEqual(lastLog, makeEntry('keys', ['once'], [], ['0', '1', '2', '3']));
+
+    lastLog = undefined;
+    old.keys('once');
+    strictEqual(lastLog, undefined);
+  });
+
   test('should not log when both lodashs produce functions', 1, function() {
     var curried = _.curry(function(a, b, c) {
       return [a, b, c];
