@@ -3,8 +3,6 @@ var _ = require('lodash-compat'),
     inspect = _.partial(require('util').inspect, _, { 'colors': true }),
     trunc = _.partial(_.trunc, _, 80);
 
-require('../index.js');
-
 var lastLog,
     reColor = /\x1b\[\d+m/g;
 
@@ -56,7 +54,17 @@ function makeEntry(name, args, oldResult, newResult) {
 
 /*----------------------------------------------------------------------------*/
 
-QUnit.module('migrate logging');
+QUnit.module('lodash-migrate');
+
+(function() {
+  test('should return older lodash', 1, function() {
+    strictEqual(require('../index.js'), old);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('logging');
 
 (function() {
   var array = [1, 2, 3],
