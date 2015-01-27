@@ -5,13 +5,17 @@ var _ = require('lodash-compat'),
 
 require('../index.js');
 
+var lastLog,
+    reColor = /\x1b\[\d+m/g;
+
 global.QUnit = require('qunitjs');
 require('qunit-extras').runInContext(global);
 
-/*----------------------------------------------------------------------------*/
+QUnit.testStart(function() {
+  lastLog = undefined;
+});
 
-var lastLog,
-    reColor = /\x1b\[\d+m/g;
+/*----------------------------------------------------------------------------*/
 
 /**
  * Intercepts text written to `stdout`.
@@ -110,6 +114,14 @@ QUnit.module('migrate logging');
   test('should log when using unsupported chaining API', 1, function() {
     old(array).first(2);
     deepEqual(lastLog, makeEntry('first', [array, 2, undefined], [1, 2], 1));
+  });
+
+  test('should not log when both lodashs produce functions', 1, function() {
+    var curried = _.curry(function(a, b, c) {
+      return [a, b, c];
+    });
+
+    strictEqual(lastLog, undefined);
   });
 }());
 

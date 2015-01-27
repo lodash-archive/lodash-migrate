@@ -11,7 +11,10 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
         oldResult = oldFunc.apply(old, args),
         newResult = _.attempt(function() { return newFunc.apply(_, args); });
 
-    if (!_.isEqual(oldResult, newResult)) {
+    if (typeof oldResult == 'function'
+          ? typeof newResult != 'function'
+          : !_.isEqual(oldResult, newResult)
+        ) {
       args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
       args = args.replace(/\n */g, ' ');
       console.info([
