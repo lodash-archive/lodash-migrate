@@ -2,7 +2,7 @@ var _ = require('lodash-compat'),
     old = require('lodash');
 
 var cache = Object.create(null),
-    inspect = _.partial(require('util').inspect, _, { 'colors': true }),
+    inspect = _.partial(require('util').inspect, _, { 'colors': !_.support.dom }),
     trunc = _.partial(_.trunc, _, 80);
 
 // Wrap static methods.

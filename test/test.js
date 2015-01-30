@@ -24,7 +24,7 @@ QUnit.testStart(function() {
 process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), function(func) {
   var args = _.slice(arguments, 1);
   if (_.startsWith(args[0], 'lodash-migrate:')) {
-    lastLog = _.trim(args[0].replace(reColor, ''));
+    lastLog = _.trim(args[0]);
   } else {
     func.apply(null, args);
   }
@@ -48,8 +48,7 @@ function makeEntry(name, args, oldResult, newResult) {
     '  v' + old.VERSION + ' => ' + trunc(inspect(oldResult)),
     '  v' + _.VERSION   + ' => ' + trunc(inspect(newResult))
   ]
-  .join('\n')
-  .replace(reColor, '');
+  .join('\n');
 }
 
 /*----------------------------------------------------------------------------*/
@@ -139,6 +138,32 @@ QUnit.module('logging');
     });
 
     strictEqual(lastLog, undefined);
+  });
+
+  test('should not include ANSI escape codes in logs when in the browser', 2, function() {
+    var dom = _.support.dom;
+
+    old.keys('ansi-node');
+    ok(reColor.test(lastLog));
+
+    _.each(['lodash', '../index.js'], function(name) {
+      delete require.cache[require.resolve(name)];
+    });
+
+    _.support.dom = true;
+    old = require('lodash');
+    require('../index.js');
+
+    old.keys('ansi-browser');
+    ok(!reColor.test(lastLog));
+
+    _.each(['lodash', '../index.js'], function(name) {
+      delete require.cache[require.resolve(name)];
+    });
+
+    _.support.dom = dom;
+    old = require('lodash');
+    require('../index.js');
   });
 }());
 
