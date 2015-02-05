@@ -1,4 +1,4 @@
-# lodash-migrate v0.1.3
+# lodash-migrate v0.1.4
 
 Migrate older [lodash](https://lodash.com/) code to the latest release.
 
@@ -27,4 +27,4 @@ _.first([1, 2, 3], 2);
 //   v3.0.0 => 1
 ```
 
-See the [package source](https://github.com/lodash/lodash-migrate/tree/0.1.3) for more details.
+See the [package source](https://github.com/lodash/lodash-migrate/tree/0.1.4) for more details.
