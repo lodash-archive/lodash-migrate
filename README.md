@@ -14,7 +14,7 @@ $ npm i lodash-migrate
 In Node.js/io.js:
 
 ```js
-// load lodash
+// load the older lodash
 var _ = require('lodash');
 // load lodash-migrate after
 require('lodash-migrate');
