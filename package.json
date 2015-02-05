@@ -25,7 +25,6 @@
     "qunitjs": "~1.16.0"
   },
   "files": [
-    "LICENSE.txt",
     "index.js"
   ]
 }
