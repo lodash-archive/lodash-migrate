@@ -132,8 +132,17 @@ QUnit.module('logging');
     strictEqual(lastLog, undefined);
   });
 
-  test('should not log when both lodashs produce functions', 1, function() {
-    var curried = _.curry(function(a, b, c) {
+  test('should not log when both lodashes produce uncomparable values', 2, function() {
+    function Foo(a) { this.a = a; }
+    var counter = 0;
+
+    old.times(2, function() {
+      return new Foo(counter++);
+    });
+
+    strictEqual(lastLog, undefined);
+
+    old.curry(function(a, b, c) {
       return [a, b, c];
     });
 

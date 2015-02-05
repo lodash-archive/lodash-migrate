@@ -5,6 +5,19 @@ var cache = Object.create(null),
     inspect = _.partial(require('util').inspect, _, { 'colors': !_.support.dom }),
     trunc = _.partial(_.trunc, _, 80);
 
+var isComparable = function(value) {
+  return (
+    value == null          || !_.isObject(value)   || _.isArray(value)      ||
+    _.isPlainObject(value) || _.isArguments(value) || _.isBoolean(value)    ||
+    _.isDate(value)        || _.isError(value)     || _.isNumber(value)     ||
+    _.isRegExp(value)      || _.isString(value)    || _.isTypedArray(value)
+  );
+};
+
+var customizer = function(value, other) {
+  return _.some([value, other], isComparable) ? undefined : true;
+};
+
 // Wrap static methods.
 _.each(_.without(_.functions(old), 'mixin'), function(name) {
   var newFunc = _[name];
@@ -13,9 +26,9 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
         oldResult = oldFunc.apply(old, args),
         newResult = _.attempt(function() { return newFunc.apply(_, args); });
 
-    if (typeof oldResult == 'function'
-          ? typeof newResult != 'function'
-          : !_.isEqual(oldResult, newResult)
+    if (!isComparable(oldResult)
+        ? isComparable(newResult)
+        : !_.isEqual(oldResult, newResult, customizer)
         ) {
       args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
       args = args.replace(/\n */g, ' ');
