@@ -1,17 +1,15 @@
 var _ = require('lodash-compat'),
     old = require('lodash'),
-    inspect = _.partial(require('util').inspect, _, { 'colors': true }),
-    trunc = _.partial(_.trunc, _, 80);
+    inspect = _.partial(require('util').inspect, _, { 'colors': true });
 
-var lastLog,
-    reColor = /\x1b\[\d+m/g;
+var reColor = /\x1b\[\d+m/g,
+    trunc = _.partial(_.trunc, _, 80);
 
 global.QUnit = require('qunitjs');
 require('qunit-extras').runInContext(global);
 
-QUnit.testStart(function() {
-  lastLog = undefined;
-});
+var lastLog;
+QUnit.testStart(function() { lastLog = undefined; });
 
 /*----------------------------------------------------------------------------*/
 
