@@ -1,7 +1,7 @@
 var _ = require('lodash-compat'),
     old = require('lodash');
 
-var cache = Object.create(null),
+var cache = {},
     inspect = _.partial(require('util').inspect, _, { 'colors': !_.support.dom }),
     trunc = _.partial(_.trunc, _, 80);
 
@@ -41,7 +41,7 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
       ].join('\n');
 
       // only log a specific message once
-      if (!cache[message]) {
+      if (!_.has(cache, message)) {
         cache[message] = true;
         console.log(message);
       }
