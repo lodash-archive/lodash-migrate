@@ -5,6 +5,23 @@ var cache = {},
     inspect = _.partial(require('util').inspect, _, { 'colors': !_.support.dom }),
     trunc = _.partial(_.trunc, _, 80);
 
+/*----------------------------------------------------------------------------*/
+
+/** Used to map old method names to their new names. */
+var renameMap = {
+  'createCallback': 'callback'
+};
+
+/**
+ * Checks if `value` is comparable.
+ *
+ * **Note**: Values such as functions, DOM nodes, and objects created by
+ * constructors other than `Object` are not comparable.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a comparable, else `false`.
+ */
 var isComparable = function(value) {
   return (
     value == null          || !_.isObject(value)   || _.isArray(value)      ||
@@ -14,13 +31,24 @@ var isComparable = function(value) {
   );
 };
 
+/**
+ * Used with `_.isEqual` to customize its value comparisons with `isComparable`.
+ *
+ * @private
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @returns {boolean|undefined} Returns `undefined` if value comparisons should
+ *  be handled by `_.isEqual`, else `true` to indicate equivalent values.
+ */
 var customizer = function(value, other) {
   return _.some([value, other], isComparable) ? undefined : true;
 };
 
+/*----------------------------------------------------------------------------*/
+
 // Wrap static methods.
 _.each(_.without(_.functions(old), 'mixin'), function(name) {
-  var newFunc = _[name];
+  var newFunc = _[renameMap[name] || name];
   old[name] = _.wrap(old[name], function(oldFunc) {
     var args = _.slice(arguments, 1),
         oldResult = oldFunc.apply(old, args),

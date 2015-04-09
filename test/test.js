@@ -61,6 +61,17 @@ QUnit.module('lodash-migrate');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('missing methods');
+
+(function() {
+  test('should not error on legacy `_.createCallback` use', 1, function() {
+    old.createCallback('x');
+    strictEqual(lastLog, undefined);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('logging');
 
 (function() {
