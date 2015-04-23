@@ -72,6 +72,26 @@ QUnit.module('missing methods');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('mutator methods');
+
+(function() {
+  test('should not double up on value mutations', 1, function() {
+    var array = [1, 2, 3],
+        lastIndex = 0;
+
+    old.remove(array, function(value, index) {
+      if (lastIndex > index) {
+        return true;
+      }
+      lastIndex = index;
+    });
+
+    deepEqual(array, [1, 2, 3]);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('logging');
 
 (function() {

@@ -13,6 +13,21 @@ var renameMap = {
 };
 
 /**
+ * A specialized version of `_.cloneDeep` which only clones arrays and plain
+ * objects assigning all other values by reference.
+ *
+ * @private
+ * @param {*} value The value to clone.
+ * @returns {*} The cloned value.
+ */
+var cloneDeep = _.partial(_.cloneDeep, _, function(value) {
+  // Only clone primitives, arrays, and plain objects.
+  return (_.isObject(value) && !_.isArray(value) && !_.isPlainObject(value))
+    ? value
+    : undefined;
+});
+
+/**
  * Checks if `value` is comparable.
  *
  * **Note**: Values such as functions, DOM nodes, and objects created by
@@ -52,7 +67,7 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
   old[name] = _.wrap(old[name], function(oldFunc) {
     var args = _.slice(arguments, 1),
         oldResult = oldFunc.apply(old, args),
-        newResult = _.attempt(function() { return newFunc.apply(_, args); });
+        newResult = _.attempt(function() { return newFunc.apply(_, cloneDeep(args)); });
 
     if (!isComparable(oldResult)
         ? isComparable(newResult)
