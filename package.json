@@ -22,7 +22,7 @@
   "devDependencies": {
     "lodash": "^2.4.1",
     "qunit-extras": "~1.4.0",
-    "qunitjs": "~1.17.0"
+    "qunitjs": "~1.18.0"
   },
   "files": [
     "index.js"
