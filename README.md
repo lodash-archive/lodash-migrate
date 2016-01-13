@@ -1,4 +1,4 @@
-# lodash-migrate v0.1.6
+# lodash-migrate v0.2.0
 
 Migrate older [lodash](https://lodash.com/) code to the latest release.
 
@@ -11,7 +11,7 @@ $ {sudo -H} npm i -g npm
 $ npm i lodash-migrate
 ```
 
-In Node.js/io.js:
+In Node.js:
 
 ```js
 // load the older lodash
@@ -20,11 +20,11 @@ var _ = require('lodash');
 require('lodash-migrate');
 
 // later when using API not supported by the latest lodash release
-_.first([1, 2, 3], 2);
+_.max(['13', '22'], '1');
 // => logs:
-// lodash-migrate: _.first([ 1, 2, 3 ], 2)
-//   v2.4.1 => [ 1, 2 ]
-//   v3.0.0 => 1
+// lodash-migrate: _.max([ '13', '22'...)
+//   v3.10.1 => '13'
+//   v4.0.0 => '22'
 ```
 
-See the [package source](https://github.com/lodash/lodash-migrate/tree/0.1.6) for more details.
+See the [package source](https://github.com/lodash/lodash-migrate/tree/0.2.0) for more details.
