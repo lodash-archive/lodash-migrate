@@ -1,9 +1,9 @@
-var _ = require('lodash-compat'),
+var _ = require('../lodash'),
     old = require('lodash'),
     inspect = _.partial(require('util').inspect, _, { 'colors': true });
 
 var reColor = /\x1b\[\d+m/g,
-    trunc = _.partial(_.trunc, _, 80);
+    trunc = _.partial(_.truncate, _, 80);
 
 global.QUnit = require('qunitjs');
 require('qunit-extras').runInContext(global);
@@ -54,8 +54,10 @@ function makeEntry(name, args, oldResult, newResult) {
 QUnit.module('lodash-migrate');
 
 (function() {
-  test('should return older lodash', 1, function() {
-    strictEqual(require('../index.js'), old);
+  QUnit.test('should return older lodash', function(assert) {
+    assert.expect(1);
+
+    assert.strictEqual(require('../index.js'), old);
   });
 }());
 
@@ -64,9 +66,11 @@ QUnit.module('lodash-migrate');
 QUnit.module('missing methods');
 
 (function() {
-  test('should not error on legacy `_.createCallback` use', 1, function() {
-    old.createCallback('x');
-    strictEqual(lastLog, undefined);
+  QUnit.test('should not error on legacy `_.callback` use', function(assert) {
+    assert.expect(1);
+
+    old.callback('x');
+    assert.strictEqual(lastLog, undefined);
   });
 }());
 
@@ -75,7 +79,9 @@ QUnit.module('missing methods');
 QUnit.module('mutator methods');
 
 (function() {
-  test('should not double up on value mutations', 1, function() {
+  QUnit.test('should not double up on value mutations', function(assert) {
+    assert.expect(1);
+
     var array = [1, 2, 3],
         lastIndex = 0;
 
@@ -86,7 +92,7 @@ QUnit.module('mutator methods');
       lastIndex = index;
     });
 
-    deepEqual(array, [1, 2, 3]);
+    assert.deepEqual(array, [1, 2, 3]);
   });
 }());
 
@@ -95,112 +101,79 @@ QUnit.module('mutator methods');
 QUnit.module('logging');
 
 (function() {
+  function Foo(key) {
+    this[key] = function() {};
+  }
+  Foo.prototype.$ = function() {};
+
   var array = [1, 2, 3],
+      objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
       lessThanTwo = function(value) { return value < 2; },
       greaterThanTwo = function(value) { return value > 2; };
 
-  test('should log when using unsupported static API', 13, function() {
-    old.clone(_.noop);
-    deepEqual(lastLog, makeEntry('clone', [_.noop], _.noop, {}));
+  QUnit.test('should log when using unsupported static API', function(assert) {
+    assert.expect(1);
 
-    old.first(array, 2);
-    deepEqual(lastLog, makeEntry('first', [array, 2], [1, 2], 1));
-
-    old.first(array, lessThanTwo);
-    deepEqual(lastLog, makeEntry('first', [array, lessThanTwo], [1], 1));
-
-    var nested = [1, [2, [3]]];
-    old.flatten(nested);
-    deepEqual(lastLog, makeEntry('flatten', [nested], [1, 2, 3], [1, 2, [3]]));
-
-    var object = { 'c': _.noop, 'b': _.noop, 'a': _.noop };
-    old.functions(object);
-    deepEqual(lastLog, makeEntry('functions', [object], ['a', 'b', 'c'], ['c', 'b', 'a']));
-
-    old.initial(array, 2);
-    deepEqual(lastLog, makeEntry('initial', [array, 2], [1], [1, 2]));
-
-    old.isFinite('1');
-    deepEqual(lastLog, makeEntry('isFinite', ['1'], true, false));
-
-    old.keys('hi');
-    deepEqual(lastLog, makeEntry('keys', ['hi'], [], ['0', '1']));
-
-    old.last(array, 2);
-    deepEqual(lastLog, makeEntry('last', [array, 2], [2, 3], 3));
-
-    old.last(array, greaterThanTwo);
-    deepEqual(lastLog, makeEntry('last', [array, greaterThanTwo], [3], 3));
-
-    old.rest(array, 2);
-    deepEqual(lastLog, makeEntry('rest', [array, 2], [3], [2, 3]));
-
-    var string = '<%= o.a %>',
-        options = { 'variable': 'o' },
-        data = { 'a': 'b' };
-
-    old.template(string, data, options);
-    deepEqual(lastLog, makeEntry('template', [string, data, options], 'b', _.template(string, data, options)));
-
-    var zipped = [['a'], [1]];
-    old.zip(zipped);
-    deepEqual(lastLog, makeEntry('zip', [zipped], [['a', 1]], [[['a']], [[1]]]));
+    old.max(objects, 'a');
+    assert.deepEqual(lastLog, makeEntry('max', [objects], objects[2], objects[0]));
   });
 
-  test('should log when using unsupported chaining API', 1, function() {
-    old(array).first(2);
-    deepEqual(lastLog, makeEntry('first', [array, 2, undefined], [1, 2], 1));
+  QUnit.test('should log when using unsupported chaining API', function(assert) {
+    assert.expect(1);
+
+    var string = 'abcdef',
+        error = _.attempt(function(x) { x.apply(); });
+
+    old(string).trunc(3);
+    assert.deepEqual(lastLog, makeEntry('trunc', [string, 3], '...', error));
   });
 
-  test('should log a specific message once', 2, function() {
-    old.keys('once');
-    deepEqual(lastLog, makeEntry('keys', ['once'], [], ['0', '1', '2', '3']));
+  QUnit.test('should log a specific message once', function(assert) {
+    assert.expect(2);
+
+    var foo = new Foo('a');
+    old.functions(foo);
+    assert.deepEqual(lastLog, makeEntry('functions', [foo], ['a', '$'], ['a']));
 
     lastLog = undefined;
-    old.keys('once');
-    strictEqual(lastLog, undefined);
+    old.functions(foo);
+    assert.strictEqual(lastLog, undefined);
   });
 
-  test('should not log when both lodashes produce uncomparable values', 2, function() {
-    function Foo(a) { this.a = a; }
+  QUnit.test('should not log when both lodashes produce uncomparable values', function(assert) {
+    assert.expect(2);
+
+    function Bar(a) { this.a = a; }
     var counter = 0;
 
     old.times(2, function() {
-      return new Foo(counter++);
+      return new Bar(counter++);
     });
 
-    strictEqual(lastLog, undefined);
+    assert.strictEqual(lastLog, undefined);
 
     old.curry(function(a, b, c) {
       return [a, b, c];
     });
 
-    strictEqual(lastLog, undefined);
+    assert.strictEqual(lastLog, undefined);
   });
 
-  test('should not include ANSI escape codes in logs when in the browser', 2, function() {
-    var dom = _.support.dom;
+  QUnit.test('should not include ANSI escape codes in logs when in the browser', function(assert) {
+    assert.expect(2);
 
-    old.keys('ansi-node');
-    ok(reColor.test(lastLog));
+    old.functions(new Foo('b'));
+    assert.ok(reColor.test(lastLog));
 
-    _.each(['lodash', '../index.js'], function(name) {
-      delete require.cache[require.resolve(name)];
-    });
-
-    _.support.dom = true;
-    old = require('lodash');
+    global.document = {};
+    delete require.cache[require.resolve('../index.js')];
     require('../index.js');
 
-    old.keys('ansi-browser');
-    ok(!reColor.test(lastLog));
+    old.functions(new Foo('c'));
+    assert.ok(!reColor.test(lastLog));
 
-    _.each(['lodash', '../index.js'], function(name) {
-      delete require.cache[require.resolve(name)];
-    });
-
-    _.support.dom = dom;
-    old = require('lodash');
+    delete global.document;
+    delete require.cache[require.resolve('../index.js')];
     require('../index.js');
   });
 }());

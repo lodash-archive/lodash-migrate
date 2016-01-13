@@ -1,15 +1,16 @@
-var _ = require('lodash-compat'),
+var _ = require('./lodash'),
     old = require('lodash');
 
 var cache = {},
-    inspect = _.partial(require('util').inspect, _, { 'colors': !_.support.dom }),
-    trunc = _.partial(_.trunc, _, 80);
+    inspect = _.partial(require('util').inspect, _, { 'colors': typeof document == 'undefined' }),
+    truncate = _.partial(_.truncate, _, 80);
 
 /*----------------------------------------------------------------------------*/
 
 /** Used to map old method names to their new names. */
 var renameMap = {
-  'createCallback': 'callback'
+  'callback': 'iteratee',
+  'createCallback': 'iteratee'
 };
 
 /**
@@ -20,7 +21,7 @@ var renameMap = {
  * @param {*} value The value to clone.
  * @returns {*} The cloned value.
  */
-var cloneDeep = _.partial(_.cloneDeep, _, function(value) {
+var cloneDeep = _.partial(_.cloneDeepWith, _, function(value) {
   // Only clone primitives, arrays, and plain objects.
   return (_.isObject(value) && !_.isArray(value) && !_.isPlainObject(value))
     ? value
@@ -47,7 +48,7 @@ var isComparable = function(value) {
 };
 
 /**
- * Used with `_.isEqual` to customize its value comparisons with `isComparable`.
+ * Used with `_.isEqualWith` to customize its value comparisons with `isComparable`.
  *
  * @private
  * @param {*} value The value to compare.
@@ -62,7 +63,7 @@ var customizer = function(value, other) {
 /*----------------------------------------------------------------------------*/
 
 // Wrap static methods.
-_.each(_.without(_.functions(old), 'mixin'), function(name) {
+_.each(_.without(_.functionsIn(old), 'mixin'), function(name) {
   var newFunc = _[renameMap[name] || name];
   old[name] = _.wrap(old[name], function(oldFunc) {
     var args = _.slice(arguments, 1),
@@ -71,15 +72,15 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
 
     if (!isComparable(oldResult)
         ? isComparable(newResult)
-        : !_.isEqual(oldResult, newResult, customizer)
+        : !_.isEqualWith(oldResult, newResult, customizer)
         ) {
       args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
       args = args.replace(/\n */g, ' ');
 
       var message = [
-        'lodash-migrate: _.' + name + '(' + trunc(args) + ')',
-        '  v' + old.VERSION + ' => ' + trunc(inspect(oldResult)),
-        '  v' + _.VERSION   + ' => ' + trunc(inspect(newResult)),
+        'lodash-migrate: _.' + name + '(' + truncate(args) + ')',
+        '  v' + old.VERSION + ' => ' + truncate(inspect(oldResult)),
+        '  v' + _.VERSION   + ' => ' + truncate(inspect(newResult)),
         ''
       ].join('\n');
 
@@ -94,33 +95,44 @@ _.each(_.without(_.functions(old), 'mixin'), function(name) {
 });
 
 // Wrap `_.prototype` methods that return unwrapped values when chaining.
-old.mixin(_.transform((
-  'all,any,clone,cloneDeep,contains,detect,escape,every,find,findIndex,findKey,' +
-  'findLast,findLastIndex,findLastKey,findWhere,foldl,foldr,has,include,identity,' +
-  'indexOf,inject,isArguments,isArray,isBoolean,isDate,isElement,isEmpty,isFinite,' +
-  'isFunction,isNaN,isNull,isNumber,isObject,isPlainObject,isRegExp,isString,isUndefined,' +
-  'lastIndexOf,noConflict,noop,now,parseInt,random,reduce,reduceRight,result,runInContext,' +
-  'size,some,sortedIndex,template,unescape,uniqueId').split(','), function(source, name) {
+old.mixin(_.transform([
+  // aliases
+  'all', 'any', 'contains', 'eq', 'detect', 'foldl', 'foldr', 'head', 'include',
+  'inject',
+
+  // methods
+  'add', 'attempt', 'camelCase', 'capitalize', 'ceil', 'clone', 'cloneDeep',
+  'deburr', 'endsWith', 'escape', 'escapeRegExp', 'every', 'find', 'findIndex',
+  'findKey', 'findLast', 'findLastIndex', 'findLastKey', 'findWhere', 'first',
+  'floor', 'get', 'gt', 'gte', 'has', 'identity', 'includes', 'indexOf',
+  'inRange', 'isArguments', 'isArray', 'isBoolean', 'isDate', 'isElement',
+  'isEmpty', 'isEqual', 'isError', 'isFinite', 'isFunction', 'isMatch',
+  'isNative', 'isNaN', 'isNull', 'isNumber', 'isObject', 'isPlainObject',
+  'isRegExp', 'isString', 'isUndefined', 'isTypedArray', 'join', 'kebabCase',
+  'last', 'lastIndexOf', 'lt', 'lte', 'max', 'min', 'noConflict', 'noop',
+  'now', 'pad', 'padLeft', 'padRight', 'parseInt', 'pop', 'random', 'reduce',
+  'reduceRight', 'repeat', 'result', 'round', 'runInContext', 'shift', 'size',
+  'snakeCase', 'some', 'sortedIndex', 'sortedLastIndex', 'startCase',
+  'startsWith', 'sum', 'template', 'trim', 'trimLeft', 'trimRight', 'trunc',
+  'unescape', 'uniqueId', 'value', 'words'
+], function(source, name) {
     source[name] = old[name];
 }, {}), false);
 
-// Wrap `_.prototype` methods capable of returning wrapped and unwrapped values when chaining.
-_.assign(old.prototype, _.transform(
-  'first,head,last,sample,take'.split(','), function(source, name) {
-    var callbackable = name !== 'sample',
-        func = old[name];
+// Wrap `_#sample` which is capable of returning wrapped and unwrapped values.
+(function() {
+  var oldFunc = old.sample;
+  old.prototype.sample = function(n) {
+    var chainAll = this.__chain__,
+        result = func(this.__wrapped__, n);
 
-    source[name] = function(n, guard) {
-      var chainAll = this.__chain__,
-          result = func(this.__wrapped__, n, guard);
-
-      if (!chainAll && (n == null || (guard && !(callbackable && typeof n == 'function')))) {
-        return result;
-      }
-      result = old(result);
-      result.__chain__ = chainAll;
+    if (!chainAll && n == null) {
       return result;
-    };
-}, {}));
+    }
+    result = old(result);
+    result.__chain__ = chainAll;
+    return result;
+  };
+}());
 
 module.exports = old;
