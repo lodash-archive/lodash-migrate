@@ -2,8 +2,8 @@ var _ = require('./lodash'),
     old = require('lodash');
 
 var cache = {},
-    inspect = _.partial(require('util').inspect, _, { 'colors': typeof document == 'undefined' }),
-    truncate = _.partial(_.truncate, _, 80);
+    useColors = typeof document == 'undefined',
+    inspect = _.partial(require('util').inspect, _, { 'colors': useColors });
 
 /*----------------------------------------------------------------------------*/
 
@@ -29,6 +29,19 @@ var cloneDeep = _.partial(_.cloneDeepWith, _, function(value) {
 });
 
 /**
+ * Used with `_.isEqualWith` to customize its value comparisons with `isComparable`.
+ *
+ * @private
+ * @param {*} value The value to compare.
+ * @param {*} other The other value to compare.
+ * @returns {boolean|undefined} Returns `undefined` if value comparisons should
+ *  be handled by `_.isEqual`, else `true` to indicate equivalent values.
+ */
+var customizer = function(value, other) {
+  return _.some([value, other], isComparable) ? undefined : true;
+};
+
+/**
  * Checks if `value` is comparable.
  *
  * **Note**: Values such as functions, DOM nodes, and objects created by
@@ -48,16 +61,20 @@ var isComparable = function(value) {
 };
 
 /**
- * Used with `_.isEqualWith` to customize its value comparisons with `isComparable`.
+ * Truncates `string` while ensuring ansi colors are reset.
  *
  * @private
- * @param {*} value The value to compare.
- * @param {*} other The other value to compare.
- * @returns {boolean|undefined} Returns `undefined` if value comparisons should
- *  be handled by `_.isEqual`, else `true` to indicate equivalent values.
+ * @param {string} string The string to truncate.
+ * @returns {string} Returns the truncated string.
  */
-var customizer = function(value, other) {
-  return _.some([value, other], isComparable) ? undefined : true;
+var truncate = function(string) {
+  var result = _.truncate(string, { 'length': 80 });
+
+  // Reset ansi color when truncated.
+  if (useColors) {
+    result += '\u001b[0m';
+  }
+  return result;
 };
 
 /*----------------------------------------------------------------------------*/
