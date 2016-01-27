@@ -98,6 +98,22 @@ QUnit.module('mutator methods');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('sample method');
+
+(function() {
+  QUnit.test('should work when chaining', function(assert) {
+    assert.expect(2);
+
+    var array = [1],
+        wrapped = old(array);
+
+    assert.strictEqual(wrapped.sample(), 1);
+    assert.deepEqual(wrapped.sample(1), [1]);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('logging');
 
 (function() {

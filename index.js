@@ -84,7 +84,7 @@ _.each(_.without(_.functionsIn(old), 'mixin'), function(name) {
         ''
       ].join('\n');
 
-      // only log a specific message once
+      // Only log a specific message once.
       if (!_.has(cache, message)) {
         cache[message] = true;
         console.log(message);
@@ -96,11 +96,6 @@ _.each(_.without(_.functionsIn(old), 'mixin'), function(name) {
 
 // Wrap `_.prototype` methods that return unwrapped values when chaining.
 old.mixin(_.transform([
-  // aliases
-  'all', 'any', 'contains', 'eq', 'detect', 'foldl', 'foldr', 'head', 'include',
-  'inject',
-
-  // methods
   'add', 'attempt', 'camelCase', 'capitalize', 'ceil', 'clone', 'cloneDeep',
   'deburr', 'endsWith', 'escape', 'escapeRegExp', 'every', 'find', 'findIndex',
   'findKey', 'findLast', 'findLastIndex', 'findLastKey', 'findWhere', 'first',
@@ -114,17 +109,21 @@ old.mixin(_.transform([
   'reduceRight', 'repeat', 'result', 'round', 'runInContext', 'shift', 'size',
   'snakeCase', 'some', 'sortedIndex', 'sortedLastIndex', 'startCase',
   'startsWith', 'sum', 'template', 'trim', 'trimLeft', 'trimRight', 'trunc',
-  'unescape', 'uniqueId', 'value', 'words'
+  'unescape', 'uniqueId', 'value', 'words',
+
+  // Method aliases.
+  'all', 'any', 'contains', 'eq', 'detect', 'foldl', 'foldr', 'head', 'include',
+  'inject'
 ], function(source, name) {
-    source[name] = old[name];
+  source[name] = old[name];
 }, {}), false);
 
 // Wrap `_#sample` which is capable of returning wrapped and unwrapped values.
 (function() {
-  var oldFunc = old.sample;
+  var sample = old.sample;
   old.prototype.sample = function(n) {
     var chainAll = this.__chain__,
-        result = func(this.__wrapped__, n);
+        result = sample(this.__wrapped__, n);
 
     if (!chainAll && n == null) {
       return result;
