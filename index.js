@@ -40,10 +40,10 @@ var cloneDeep = _.partial(_.cloneDeepWith, _, function(value) {
  */
 var isComparable = function(value) {
   return (
-    value == null          || !_.isObject(value)   || _.isArray(value)      ||
-    _.isPlainObject(value) || _.isArguments(value) || _.isBoolean(value)    ||
-    _.isDate(value)        || _.isError(value)     || _.isNumber(value)     ||
-    _.isRegExp(value)      || _.isString(value)    || _.isTypedArray(value)
+    value == null     || !_.isObject(value) || _.isArguments(value)   ||
+    _.isArray(value)  || _.isBoolean(value) || _.isDate(value)        ||
+    _.isError(value)  || _.isNumber(value)  || _.isPlainObject(value) ||
+    _.isRegExp(value) || _.isString(value)  || _.isTypedArray(value)
   );
 };
 
