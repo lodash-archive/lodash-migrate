@@ -2,14 +2,17 @@ var _ = require('../lodash'),
     old = require('lodash'),
     inspect = _.partial(require('util').inspect, _, { 'colors': true });
 
-var reColor = /\x1b\[\d+m/g,
-    trunc = _.partial(_.truncate, _, 80);
+var ANSI_RESET = '\u001b[0m';
+
+var reColor = /\x1b\[\d+m/g;
 
 global.QUnit = require('qunitjs');
 require('qunit-extras').runInContext(global);
 
 var lastLog;
-QUnit.testStart(function() { lastLog = undefined; });
+QUnit.testStart(function() {
+  lastLog = undefined;
+});
 
 /*----------------------------------------------------------------------------*/
 
@@ -19,14 +22,13 @@ QUnit.testStart(function() { lastLog = undefined; });
  * @private
  * @param {...string} text The test to log.
  */
-process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), function(func) {
-  var args = _.slice(arguments, 1);
+process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), _.rest(function(func, args) {
   if (_.startsWith(args[0], 'lodash-migrate:')) {
     lastLog = _.trim(args[0]);
   } else {
     func.apply(null, args);
   }
-});
+}));
 
 /**
  * Creates a simulated lodash-migrate log entry.
@@ -42,11 +44,25 @@ function makeEntry(name, args, oldResult, newResult) {
   args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
   args = args.replace(/\n */g, ' ');
   return [
-    'lodash-migrate: _.' + name + '(' + trunc(args) + ')',
-    '  v' + old.VERSION + ' => ' + trunc(inspect(oldResult)),
-    '  v' + _.VERSION   + ' => ' + trunc(inspect(newResult))
-  ]
-  .join('\n');
+    'lodash-migrate: _.' + name + '(' + truncate(args) + ')',
+    '  v' + old.VERSION + ' => ' + truncate(inspect(oldResult)),
+    '  v' + _.VERSION   + ' => ' + truncate(inspect(newResult))
+  ].join('\n');
+}
+
+/**
+ * Truncates `string` while ensuring ansi colors are reset.
+ *
+ * @private
+ * @param {string} string The string to truncate.
+ * @returns {string} Returns the truncated string.
+ */
+function truncate(string) {
+  var result = _.truncate(string, { 'length': 80 });
+  if (result.length != string.length) {
+    result += ANSI_RESET;
+  }
+  return result;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -108,7 +124,7 @@ QUnit.module('sample method');
         wrapped = old(array);
 
     assert.strictEqual(wrapped.sample(), 1);
-    assert.deepEqual(wrapped.sample(1), [1]);
+    assert.deepEqual(wrapped.sample(1).value(), [1]);
   });
 }());
 
@@ -131,7 +147,7 @@ QUnit.module('logging');
     assert.expect(1);
 
     old.max(objects, 'a');
-    assert.deepEqual(lastLog, makeEntry('max', [objects], objects[2], objects[0]));
+    assert.deepEqual(lastLog, makeEntry('max', [objects, 'a'], objects[2], objects[0]));
   });
 
   QUnit.test('should log when using unsupported chaining API', function(assert) {
