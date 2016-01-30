@@ -20,6 +20,9 @@
     "qunitjs": "~1.20.0"
   },
   "files": [
+    "lib/listing.js",
+    "lib/mapping.js",
+    "lib/util.js",
     "index.js",
     "lodash.js"
   ]

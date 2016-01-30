@@ -1,8 +1,6 @@
 var _ = require('../lodash'),
     old = require('lodash'),
-    inspect = _.partial(require('util').inspect, _, { 'colors': true });
-
-var ANSI_RESET = '\u001b[0m';
+    util = require('../lib/util');
 
 var reColor = /\x1b\[\d+m/g;
 
@@ -41,28 +39,13 @@ process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), _.re
  * @returns {string} Returns the simulated log entry.
  */
 function makeEntry(name, args, oldResult, newResult) {
-  args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
+  args = util.inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
   args = args.replace(/\n */g, ' ');
   return [
-    'lodash-migrate: _.' + name + '(' + truncate(args) + ')',
-    '  v' + old.VERSION + ' => ' + truncate(inspect(oldResult)),
-    '  v' + _.VERSION   + ' => ' + truncate(inspect(newResult))
+    'lodash-migrate: _.' + name + '(' + util.truncate(args) + ')',
+    '  v' + old.VERSION + ' => ' + util.truncate(util.inspect(oldResult)),
+    '  v' + _.VERSION   + ' => ' + util.truncate(util.inspect(newResult))
   ].join('\n');
-}
-
-/**
- * Truncates `string` while ensuring ansi colors are reset.
- *
- * @private
- * @param {string} string The string to truncate.
- * @returns {string} Returns the truncated string.
- */
-function truncate(string) {
-  var result = _.truncate(string, { 'length': 80 });
-  if (result.length != string.length) {
-    result += ANSI_RESET;
-  }
-  return result;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -194,18 +177,27 @@ QUnit.module('logging');
   QUnit.test('should not include ANSI escape codes in logs when in the browser', function(assert) {
     assert.expect(2);
 
+    var paths = [
+      '../index.js',
+      '../lib/util.js'
+    ];
+
+    function clear(id) {
+      delete require.cache[require.resolve(id)];
+    }
+
     old.functions(new Foo('b'));
     assert.ok(reColor.test(lastLog));
 
     global.document = {};
-    delete require.cache[require.resolve('../index.js')];
+    paths.forEach(clear);
     require('../index.js');
 
     old.functions(new Foo('c'));
     assert.ok(!reColor.test(lastLog));
 
     delete global.document;
-    delete require.cache[require.resolve('../index.js')];
+    paths.forEach(clear);
     require('../index.js');
   });
 }());

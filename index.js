@@ -1,38 +1,11 @@
 var _ = require('./lodash'),
     old = require('lodash');
 
-var ANSI_RESET = '\u001b[0m',
-    USE_COLORS = typeof document == 'undefined';
+var listing = require('./lib/listing'),
+    mapping = require('./lib/mapping'),
+    util = require('./lib/util');
 
-var cache = new _.memoize.Cache,
-    objectProto = Object.prototype,
-    inspect = _.partial(require('util').inspect, _, { 'colors': USE_COLORS });
-
-var listing = {
-  'ignored': [
-    'mixin',
-    'now'
-  ],
-  'unwrapped': [
-    'add', 'attempt', 'camelCase', 'capitalize', 'ceil', 'clone', 'cloneDeep',
-    'deburr', 'endsWith', 'escape', 'escapeRegExp', 'every', 'find', 'findIndex',
-    'findKey', 'findLast', 'findLastIndex', 'findLastKey', 'findWhere', 'first',
-    'floor', 'get', 'gt', 'gte', 'has', 'identity', 'includes', 'indexOf', 'inRange',
-    'isArguments', 'isArray', 'isBoolean', 'isDate', 'isElement', 'isEmpty', 'isEqual',
-    'isError', 'isFinite', 'isFunction', 'isMatch', 'isNative', 'isNaN', 'isNull',
-    'isNumber', 'isObject', 'isPlainObject', 'isRegExp', 'isString', 'isUndefined',
-    'isTypedArray', 'join', 'kebabCase', 'last', 'lastIndexOf', 'lt', 'lte', 'max',
-    'min', 'noConflict', 'noop', 'now', 'pad', 'padLeft', 'padRight', 'parseInt',
-    'pop', 'random', 'reduce', 'reduceRight', 'repeat','result', 'round', 'runInContext',
-    'shift', 'size', 'snakeCase', 'some', 'sortedIndex', 'sortedLastIndex', 'startCase',
-    'startsWith', 'sum', 'template', 'trim', 'trimLeft', 'trimRight', 'trunc',
-    'unescape', 'uniqueId', 'value', 'words',
-
-    // Method aliases.
-    'all', 'any', 'contains', 'eq', 'detect', 'foldl', 'foldr', 'head', 'include',
-    'inject'
-  ]
-};
+var cache = new _.memoize.Cache;
 
 var messageTemplate = _.template([
   'lodash-migrate: _.<%= name %>(<%= args %>)',
@@ -41,89 +14,7 @@ var messageTemplate = _.template([
   ''
 ].join('\n'));
 
-var renameMap = {
-  'callback': 'iteratee',
-  'createCallback': 'iteratee'
-};
-
 /*----------------------------------------------------------------------------*/
-
-/**
- * A specialized version of `_.cloneDeep` which only clones arrays and plain
- * objects assigning all other values by reference.
- *
- * @private
- * @param {*} value The value to clone.
- * @returns {*} The cloned value.
- */
-var cloneDeep = _.partial(_.cloneDeepWith, _, function(value) {
-  if (isPrototype(value) || !(_.isArray(value) || _.isPlainObject(value))) {
-    return value;
-  }
-});
-
-/**
- * Used with `_.isEqualWith` to customize its value comparisons with `isComparable`.
- *
- * @private
- * @param {*} value The value to compare.
- * @param {*} other The other value to compare.
- * @returns {boolean|undefined} Returns `undefined` if value comparisons should
- *  be handled by `_.isEqual`, else `true` to indicate equivalent values.
- */
-function customizer(value, other) {
-  if (!_.some([value, other], isComparable)) {
-    return true;
-  }
-}
-
-/**
- * Checks if `value` is comparable.
- *
- * **Note**: Functions, DOM nodes, and objects created by constructors other
- * than `Object` are not comparable.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a comparable, else `false`.
- */
-function isComparable(value) {
-  return (
-    value == null     || !_.isObject(value) || _.isArguments(value)   ||
-    _.isArray(value)  || _.isBoolean(value) || _.isDate(value)        ||
-    _.isError(value)  || _.isNumber(value)  || _.isPlainObject(value) ||
-    _.isRegExp(value) || _.isString(value)  || _.isTypedArray(value)
-  );
-}
-
-/**
- * Checks if `value` is likely a prototype object.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a prototype, else `false`.
- */
-function isPrototype(value) {
-  var Ctor = value && value.constructor,
-      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;
-
-  return value === proto;
-}
-
-/**
- * Truncates `string` while ensuring ansi colors are reset.
- *
- * @private
- * @param {string} string The string to truncate.
- * @returns {string} Returns the truncated string.
- */
-function truncate(string) {
-  var result = _.truncate(string, { 'length': 80 });
-  if (USE_COLORS && result.length != string.length) {
-    result += ANSI_RESET;
-  }
-  return result;
-}
 
 /**
  * Creates a function that compares the results of method `name` on `oldDash`
@@ -136,32 +27,32 @@ function truncate(string) {
  * @returns {Function} Returns the new wrapped method.
  */
 function wrap(oldDash, newDash, name) {
-  var newFunc = newDash[renameMap[name] || name];
+  var newFunc = newDash[mapping.renameMap[name] || name];
   return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
     var that = this,
         oldResult = oldFunc.apply(that, args),
-        newResult = _.attempt(function() { return newFunc.apply(that, cloneDeep(args)); });
+        newResult = _.attempt(function() { return newFunc.apply(that, util.cloneDeep(args)); });
 
-    if (isComparable(oldResult)
-          ? _.isEqualWith(oldResult, newResult, customizer)
-          : !isComparable(newResult)
+    if (util.isComparable(oldResult)
+          ? util.isEqual(oldResult, newResult)
+          : !util.isComparable(newResult)
         ) {
       return oldResult;
     }
     // Extract inspected arguments.
-    args = inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
+    args = util.inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
     // Remove newlines.
     args = args.replace(/\n */g, ' ');
 
     var message = messageTemplate({
       'name': name,
-      'args': truncate(args),
+      'args': util.truncate(args),
       'oldData': {
-        'result': truncate(inspect(oldResult)),
+        'result': util.truncate(util.inspect(oldResult)),
         'version': oldDash.VERSION
       },
       'newData': {
-        'result': truncate(inspect(newResult)),
+        'result': util.truncate(util.inspect(newResult)),
         'version': newDash.VERSION
       }
     });
