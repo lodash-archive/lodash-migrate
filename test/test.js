@@ -78,6 +78,18 @@ QUnit.module('missing methods');
 QUnit.module('mutator methods');
 
 (function() {
+  QUnit.test('should clone arguments before invoking methods', function(assert) {
+    assert.expect(1);
+
+    var array = [1, 2, 3];
+
+    old.remove(array, function(value) {
+      return value == 2;
+    });
+
+    assert.strictEqual(lastLog, undefined);
+  });
+
   QUnit.test('should not double up on value mutations', function(assert) {
     assert.expect(1);
 

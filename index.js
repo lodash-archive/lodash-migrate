@@ -30,8 +30,9 @@ function wrap(oldDash, newDash, name) {
   var newFunc = newDash[mapping.renameMap[name] || name];
   return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
     var that = this,
+        argsClone = util.cloneDeep(args),
         oldResult = oldFunc.apply(that, args),
-        newResult = _.attempt(function() { return newFunc.apply(that, util.cloneDeep(args)); });
+        newResult = _.attempt(function() { return newFunc.apply(that, argsClone); });
 
     if (util.isComparable(oldResult)
           ? util.isEqual(oldResult, newResult)
