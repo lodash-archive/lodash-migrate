@@ -27,4 +27,16 @@ _.max(['13', '22'], '1');
 //   v4.2.0 => '22'
 ```
 
+Using bower:
+
+```bash
+$ bower install lodash/lodash-migrate
+```
+
+Then _replace_ your current lodash instance with the following
+
+```html
+<script src="bower-components/lodash-migrate/dist/lodash-migrate.min.js"></script>
+```
+
 See the [package source](https://github.com/lodash/lodash-migrate/tree/0.2.4) for more details.
