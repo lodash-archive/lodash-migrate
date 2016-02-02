@@ -11,13 +11,20 @@ $ {sudo -H} npm i -g npm
 $ npm i lodash-migrate
 ```
 
-In Node.js:
+In a browser:
+```html
+<!-- replace lodash.js with lodash-migrate.js -->
+<script src="path/to/dist/lodash-migrate.js"></script>
+```
 
+In Node.js:
 ```js
 // load the older lodash
 var _ = require('lodash');
-// load lodash-migrate after
+// then load lodash-migrate
 require('lodash-migrate');
+// or load the older lodash using lodash-migrate
+var _ = require('lodash-migrate');
 
 // later when using API not supported by the latest lodash release
 _.max(['13', '22'], '1');

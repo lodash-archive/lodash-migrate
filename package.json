@@ -13,11 +13,17 @@
     "Mathias Bynens <mathias@qiwi.be> (https://mathiasbynens.be/)"
   ],
   "repository": "lodash/lodash-migrate",
-  "scripts": { "test": "echo \"See the repository CONTRIBUTING.md for testing instructions.\"" },
+  "scripts": {
+    "test": "echo \"See the repository CONTRIBUTING.md for testing instructions.\"",
+    "build:umd": "webpack ./index.js dist/lodash-migrate.js --env development",
+    "build:umd:min": "webpack ./index.js dist/lodash-migrate.min.js --env production",
+    "build": "npm run build:umd && npm run build:umd:min"
+  },
   "devDependencies": {
     "lodash": "^3.10.1",
     "qunit-extras": "^1.4.5",
-    "qunitjs": "~1.20.0"
+    "qunitjs": "~1.20.0",
+    "webpack": "^1.12.12"
   },
   "files": [
     "lib/listing.js",
