@@ -29,7 +29,7 @@ var _ = require('lodash-migrate');
 // later when using API not supported by the latest lodash release
 _.max(['13', '22'], '1');
 // => logs:
-// lodash-migrate: _.max([ '13', '22'...)
+// lodash-migrate: _.max([ '13', '22' ], '1')
 //   v3.10.1 => '13'
 //   v4.2.0 => '22'
 ```
