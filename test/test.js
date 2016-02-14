@@ -109,7 +109,43 @@ QUnit.module('mutator methods');
 
 /*----------------------------------------------------------------------------*/
 
-QUnit.module('sample method');
+QUnit.module('old.runInContext');
+
+(function() {
+  QUnit.test('should accept a `context` argument', function(assert) {
+    assert.expect(1);
+
+    var count = 0;
+
+    var now = function() {
+      count++;
+      return Date.now();
+    };
+
+    var lodash = old.runInContext({
+      'Date': function() {
+        return { 'getTime': now };
+      }
+    });
+
+    lodash.now();
+    assert.strictEqual(count, 1);
+  });
+
+  QUnit.test('should wrap results', function(assert) {
+    assert.expect(1);
+
+    var lodash = old.runInContext(),
+        objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }];
+
+    lodash.max(objects, 'a');
+    assert.deepEqual(lastLog, makeEntry('max', [objects, 'a'], objects[2], objects[0]));
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.sample');
 
 (function() {
   QUnit.test('should work when chaining', function(assert) {
@@ -133,16 +169,13 @@ QUnit.module('logging');
   }
   Foo.prototype.$ = function() {};
 
-  var array = [1, 2, 3],
-      objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
-      lessThanTwo = function(value) { return value < 2; },
-      greaterThanTwo = function(value) { return value > 2; };
-
   QUnit.test('should log when using unsupported static API', function(assert) {
     assert.expect(1);
 
-    old.max(objects, 'a');
-    assert.deepEqual(lastLog, makeEntry('max', [objects, 'a'], objects[2], objects[0]));
+    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }];
+
+    old.max(objects, 'b');
+    assert.deepEqual(lastLog, makeEntry('max', [objects, 'b'], objects[2], objects[0]));
   });
 
   QUnit.test('should log when using unsupported chaining API', function(assert) {

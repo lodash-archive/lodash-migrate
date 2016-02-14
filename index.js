@@ -17,8 +17,47 @@ var messageTemplate = _.template([
 /*----------------------------------------------------------------------------*/
 
 /**
- * Creates a function that compares the results of method `name` on `oldDash`
- * and `newDash` and logs a warning for mismatched results.
+ * Wraps `oldDash` methods to compare results of `oldDash` and `newDash`.
+ *
+ * @private
+ * @param {Function} oldDash The old lodash function.
+ * @param {Function} newDash The new lodash function.
+ * @returns {Function} Returns `oldDash`.
+ */
+function wrapLodash(oldDash, newDash) {
+  // Wrap static methods.
+  _.each(_.difference(_.functionsIn(oldDash), listing.ignored), function(name) {
+    oldDash[name] = wrapMethod(oldDash, newDash, name);
+  });
+
+  // Wrap `_.runInContext.
+  oldDash.runInContext = _.wrap(oldDash.runInContext, function(runInContext, context) {
+    return wrapLodash(runInContext(context), newDash);
+  });
+
+  // Wrap `_.prototype` methods that return unwrapped values.
+  oldDash.mixin(_.transform(listing.unwrapped, function(source, name) {
+    source[name] = oldDash[name];
+  }, {}), false);
+
+  // Wrap `_#sample` which can return wrapped and unwrapped values.
+  oldDash.prototype.sample = _.wrap(oldDash.sample, function(sample, n) {
+    var chainAll = this.__chain__,
+        result = sample(this.__wrapped__, n);
+
+    if (chainAll || n != null) {
+      result = oldDash(result);
+      result.__chain__ = chainAll;
+    }
+    return result;
+  });
+
+  return oldDash;
+}
+
+/**
+ * Creates a function that compares results of method `name` on `oldDash`
+ * and `newDash` and logs a warning for unequal results.
  *
  * @private
  * @param {Function} oldDash The old lodash function.
@@ -26,7 +65,7 @@ var messageTemplate = _.template([
  * @param {string} name The name of the lodash method to wrap.
  * @returns {Function} Returns the new wrapped method.
  */
-function wrap(oldDash, newDash, name) {
+function wrapMethod(oldDash, newDash, name) {
   var newFunc = newDash[mapping.renameMap[name] || name];
   return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
     var that = this,
@@ -69,26 +108,4 @@ function wrap(oldDash, newDash, name) {
 
 /*----------------------------------------------------------------------------*/
 
-// Wrap static methods.
-_.each(_.difference(_.functionsIn(old), listing.ignored), function(name) {
-  old[name] = wrap(old, _, name);
-});
-
-// Wrap `_.prototype` methods that return unwrapped values.
-old.mixin(_.transform(listing.unwrapped, function(source, name) {
-  source[name] = old[name];
-}, {}), false);
-
-// Wrap `_#sample` which can return wrapped and unwrapped values.
-old.prototype.sample = _.wrap(old.sample, function(sample, n) {
-  var chainAll = this.__chain__,
-      result = sample(this.__wrapped__, n);
-
-  if (chainAll || n != null) {
-    result = old(result);
-    result.__chain__ = chainAll;
-  }
-  return result;
-});
-
-module.exports = old;
+module.exports = wrapLodash(old, _);
