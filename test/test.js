@@ -62,6 +62,33 @@ QUnit.module('lodash-migrate');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('iteration method');
+
+(function() {
+  QUnit.test('should not double up on `iteratee` invocations', function(assert) {
+    assert.expect(8);
+
+    var count,
+        array = [1],
+        object = { 'a': 1 },
+        iteratee = function() { count++; };
+
+    _.each(['each', 'eachRight', 'forEach', 'forEachRight'], function(methodName) {
+      count = 0;
+      old[methodName](array, iteratee);
+      assert.strictEqual(count, 1, methodName);
+    });
+
+    _.each(['forIn', 'forInRight', 'forOwn', 'forOwnRight'], function(methodName) {
+      count = 0;
+      old[methodName](object, iteratee);
+      assert.strictEqual(count, 1, methodName);
+    });
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('missing methods');
 
 (function() {

@@ -66,11 +66,15 @@ function wrapLodash(oldDash, newDash) {
  * @returns {Function} Returns the new wrapped method.
  */
 function wrapMethod(oldDash, newDash, name) {
-  var newFunc = newDash[mapping.renameMap[name] || name];
+  var newFunc = newDash[mapping.rename[name] || name];
   return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
     var that = this,
-        argsClone = util.cloneDeep(args),
-        oldResult = oldFunc.apply(that, args),
+        argsClone = util.cloneDeep(args);
+
+    if (mapping.iteration[name]) {
+      argsClone[1] = _.identity;
+    }
+    var oldResult = oldFunc.apply(that, args),
         newResult = _.attempt(function() { return newFunc.apply(that, argsClone); });
 
     if (util.isComparable(oldResult)
