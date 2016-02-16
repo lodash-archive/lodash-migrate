@@ -15,9 +15,9 @@
   "repository": "lodash/lodash-migrate",
   "scripts": {
     "test": "echo \"See the repository CONTRIBUTING.md for testing instructions.\"",
-    "build:umd": "webpack ./index.js dist/lodash-migrate.js --env development",
-    "build:umd:min": "webpack ./index.js dist/lodash-migrate.min.js --env production",
-    "build": "npm run build:umd && npm run build:umd:min"
+    "build": "npm run build:dev & npm run build:prod",
+    "build:dev": "webpack ./index.js dist/lodash-migrate.js --env development",
+    "build:prod": "webpack ./index.js dist/lodash-migrate.min.js --env production"
   },
   "devDependencies": {
     "lodash": "^3.10.1",
