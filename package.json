@@ -20,9 +20,9 @@
     "build": "npm run build:umd && npm run build:umd:min"
   },
   "devDependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.3.0",
     "qunit-extras": "^1.4.5",
-    "qunitjs": "~1.20.0",
+    "qunitjs": "~1.21.0",
     "webpack": "^1.12.12"
   },
   "files": [
