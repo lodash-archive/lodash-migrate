@@ -20,7 +20,7 @@
     "build:prod": "webpack ./index.js dist/lodash-migrate.min.js --env production"
   },
   "devDependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.5.1",
     "qunit-extras": "^1.4.5",
     "qunitjs": "~1.21.0",
     "webpack": "^1.12.13"
