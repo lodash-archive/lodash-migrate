@@ -5,7 +5,8 @@ var listing = require('./lib/listing'),
     mapping = require('./lib/mapping'),
     util = require('./lib/util');
 
-var cache = new _.memoize.Cache;
+var cache = new _.memoize.Cache,
+    reReturn = /\breturn\b/;
 
 var messageTemplate = _.template([
   'lodash-migrate: _.<%= name %>(<%= args %>)',
@@ -71,7 +72,7 @@ function wrapMethod(oldDash, newDash, name) {
     var that = this,
         argsClone = util.cloneDeep(args);
 
-    if (mapping.iteration[name]) {
+    if (mapping.iteration[name] && !reReturn.test(argsClone[1])) {
       argsClone[1] = _.identity;
     }
     var oldResult = oldFunc.apply(that, args),

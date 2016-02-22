@@ -66,7 +66,7 @@ QUnit.module('iteration method');
 
 (function() {
   QUnit.test('should not double up on `iteratee` invocations', function(assert) {
-    assert.expect(8);
+    assert.expect(9);
 
     var count,
         array = [1],
@@ -84,6 +84,35 @@ QUnit.module('iteration method');
       old[methodName](object, iteratee);
       assert.strictEqual(count, 1, methodName);
     });
+
+    count = 0;
+    old.times(1, iteratee);
+    assert.strictEqual(count, 1, 'times');
+  });
+
+  QUnit.test('should invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
+    assert.expect(9);
+
+    var count,
+        array = [1],
+        object = { 'a': 1 },
+        iteratee = function() { count++; return; };
+
+    _.each(['each', 'eachRight', 'forEach', 'forEachRight'], function(methodName) {
+      count = 0;
+      old[methodName](array, iteratee);
+      assert.strictEqual(count, 2, methodName);
+    });
+
+    _.each(['forIn', 'forInRight', 'forOwn', 'forOwnRight'], function(methodName) {
+      count = 0;
+      old[methodName](object, iteratee);
+      assert.strictEqual(count, 2, methodName);
+    });
+
+    count = 0;
+    old.times(1, iteratee);
+    assert.strictEqual(count, 2, 'times');
   });
 }());
 
