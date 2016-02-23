@@ -22,8 +22,8 @@
   "devDependencies": {
     "lodash": "^3.10.1",
     "qunit-extras": "^1.4.5",
-    "qunitjs": "~1.21.0",
-    "webpack": "^1.12.13"
+    "qunitjs": "~1.22.0",
+    "webpack": "^1.12.14"
   },
   "files": [
     "dist/lodash-migrate.js",
