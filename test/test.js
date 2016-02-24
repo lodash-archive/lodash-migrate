@@ -89,31 +89,6 @@ QUnit.module('iteration method');
     old.times(1, iteratee);
     assert.strictEqual(count, 1, 'times');
   });
-
-  QUnit.test('should invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
-    assert.expect(9);
-
-    var count,
-        array = [1],
-        object = { 'a': 1 },
-        iteratee = function() { count++; return; };
-
-    _.each(['each', 'eachRight', 'forEach', 'forEachRight'], function(methodName) {
-      count = 0;
-      old[methodName](array, iteratee);
-      assert.strictEqual(count, 2, methodName);
-    });
-
-    _.each(['forIn', 'forInRight', 'forOwn', 'forOwnRight'], function(methodName) {
-      count = 0;
-      old[methodName](object, iteratee);
-      assert.strictEqual(count, 2, methodName);
-    });
-
-    count = 0;
-    old.times(1, iteratee);
-    assert.strictEqual(count, 2, 'times');
-  });
 }());
 
 /*----------------------------------------------------------------------------*/
@@ -212,6 +187,22 @@ QUnit.module('old.sample');
 
     assert.strictEqual(wrapped.sample(), 1);
     assert.deepEqual(wrapped.sample(1).value(), [1]);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.times');
+
+(function() {
+  QUnit.test('should invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
+    assert.expect(1);
+
+    var count= 0,
+        iteratee = function() { count++; return; };
+
+    old.times(1, iteratee);
+    assert.strictEqual(count, 2);
   });
 }());
 
