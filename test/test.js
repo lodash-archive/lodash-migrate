@@ -1,15 +1,16 @@
 var _ = require('../lodash'),
     old = require('lodash'),
+    mapping = require('../lib/mapping'),
     util = require('../lib/util');
 
-var reColor = /\x1b\[\d+m/g;
+var logs = [],
+    reColor = /\x1b\[\d+m/g;
 
 global.QUnit = require('qunitjs');
 require('qunit-extras').runInContext(global);
 
-var lastLog;
 QUnit.testStart(function() {
-  lastLog = undefined;
+  logs.length = 0;
 });
 
 /*----------------------------------------------------------------------------*/
@@ -22,7 +23,7 @@ QUnit.testStart(function() {
  */
 process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), _.rest(function(func, args) {
   if (_.startsWith(args[0], 'lodash-migrate:')) {
-    lastLog = _.trim(args[0]);
+    logs.push(_.trim(args[0]));
   } else {
     func.apply(null, args);
   }
@@ -38,13 +39,31 @@ process.stdout.write = _.wrap(_.bind(process.stdout.write, process.stdout), _.re
  * @param {*} newResult The result from the newer version of lodash.
  * @returns {string} Returns the simulated log entry.
  */
-function makeEntry(name, args, oldResult, newResult) {
-  args = util.inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
-  args = args.replace(/\n */g, ' ');
+function migrateText(name, args, oldResult, newResult) {
   return [
-    'lodash-migrate: _.' + name + '(' + util.truncate(args) + ')',
+    'lodash-migrate: _.' + name + '(' + util.truncate(
+      util.inspect(args)
+        .match(/^\[\s*([\s\S]*?)\s*\]$/)[1]
+        .replace(/\n */g, ' ')
+    ) + ')',
     '  v' + old.VERSION + ' => ' + util.truncate(util.inspect(oldResult)),
     '  v' + _.VERSION   + ' => ' + util.truncate(util.inspect(newResult))
+  ].join('\n');
+}
+
+/**
+ * Creates a simulated rename log entry.
+ *
+ * @private
+ * @param {string} name The name of the method called.
+ * @returns {string} Returns the simulated log entry.
+ */
+function renameText(name) {
+  var newName = mapping.rename[name] || name;
+  return [
+    'lodash-migrate: Method renamed',
+    '  v' + old.VERSION + ' => _.' + name,
+    '  v' + _.VERSION   + ' => _.' + newName
   ].join('\n');
 }
 
@@ -100,7 +119,24 @@ QUnit.module('missing methods');
     assert.expect(1);
 
     old.callback('x');
-    assert.strictEqual(lastLog, undefined);
+    assert.deepEqual(logs, [renameText('callback')]);
+  });
+
+  QUnit.test('should not error on legacy `_.contains` use', function(assert) {
+    assert.expect(1);
+
+    old.contains([1, 2, 3], 2);
+    assert.deepEqual(logs, [renameText('contains')]);
+  });
+
+  QUnit.test('should not error on legacy `_.trunc` use', function(assert) {
+    assert.expect(1);
+
+    var string = 'abcdef',
+        expected = [renameText('trunc'), migrateText('trunc', [string, 3], '...', 'abcdef')];
+
+    old(string).trunc(3);
+    assert.deepEqual(logs, expected);
   });
 }());
 
@@ -118,7 +154,7 @@ QUnit.module('mutator methods');
       return value == 2;
     });
 
-    assert.strictEqual(lastLog, undefined);
+    assert.deepEqual(logs, []);
   });
 
   QUnit.test('should not double up on value mutations', function(assert) {
@@ -167,10 +203,11 @@ QUnit.module('old.runInContext');
     assert.expect(1);
 
     var lodash = old.runInContext(),
-        objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }];
+        objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
+        expected = [migrateText('max', [objects, 'a'], objects[2], objects[0])];
 
     lodash.max(objects, 'a');
-    assert.deepEqual(lastLog, makeEntry('max', [objects, 'a'], objects[2], objects[0]));
+    assert.deepEqual(logs, expected);
   });
 }());
 
@@ -219,32 +256,24 @@ QUnit.module('logging');
   QUnit.test('should log when using unsupported static API', function(assert) {
     assert.expect(1);
 
-    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }];
+    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
+        expected = [migrateText('max', [objects, 'b'], objects[2], objects[0])];
 
     old.max(objects, 'b');
-    assert.deepEqual(lastLog, makeEntry('max', [objects, 'b'], objects[2], objects[0]));
-  });
-
-  QUnit.test('should log when using unsupported chaining API', function(assert) {
-    assert.expect(1);
-
-    var string = 'abcdef',
-        error = _.attempt(function(x) { x.apply(); });
-
-    old(string).trunc(3);
-    assert.deepEqual(lastLog, makeEntry('trunc', [string, 3], '...', error));
+    assert.deepEqual(logs, expected);
   });
 
   QUnit.test('should log a specific message once', function(assert) {
     assert.expect(2);
 
-    var foo = new Foo('a');
-    old.functions(foo);
-    assert.deepEqual(lastLog, makeEntry('functions', [foo], ['a', '$'], ['a']));
+    var foo = new Foo('a'),
+        expected = [migrateText('functions', [foo], ['a', '$'], ['a'])];
 
-    lastLog = undefined;
     old.functions(foo);
-    assert.strictEqual(lastLog, undefined);
+    assert.deepEqual(logs, expected);
+
+    old.functions(foo);
+    assert.deepEqual(logs, expected);
   });
 
   QUnit.test('should not log when both lodashes produce uncomparable values', function(assert) {
@@ -257,13 +286,13 @@ QUnit.module('logging');
       return new Bar(counter++);
     });
 
-    assert.strictEqual(lastLog, undefined);
+    assert.deepEqual(logs, []);
 
     old.curry(function(a, b, c) {
       return [a, b, c];
     });
 
-    assert.strictEqual(lastLog, undefined);
+    assert.deepEqual(logs, []);
   });
 
   QUnit.test('should not include ANSI escape codes in logs when in the browser', function(assert) {
@@ -279,14 +308,14 @@ QUnit.module('logging');
     }
 
     old.functions(new Foo('b'));
-    assert.ok(reColor.test(lastLog));
+    assert.ok(reColor.test(_.last(logs)));
 
     global.document = {};
     paths.forEach(clear);
     require('../index.js');
 
     old.functions(new Foo('c'));
-    assert.ok(!reColor.test(lastLog));
+    assert.ok(!reColor.test(_.last(logs)));
 
     delete global.document;
     paths.forEach(clear);

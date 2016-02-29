@@ -8,14 +8,34 @@ var listing = require('./lib/listing'),
 var cache = new _.memoize.Cache,
     reHasReturn = /\breturn\b/;
 
-var messageTemplate = _.template([
+var migrateTemplate = _.template([
   'lodash-migrate: _.<%= name %>(<%= args %>)',
   '  v<%= oldData.version %> => <%= oldData.result %>',
   '  v<%= newData.version %> => <%= newData.result %>',
   ''
 ].join('\n'));
 
+var renameTemplate = _.template([
+  'lodash-migrate: Method renamed',
+  '  v<%= oldData.version %> => _.<%= oldData.name %>',
+  '  v<%= newData.version %> => _.<%= newData.name %>',
+  ''
+].join('\n'));
+
 /*----------------------------------------------------------------------------*/
+
+/**
+ * Logs `value` if it hasn't been logged before.
+ *
+ * @private
+ * @param {*} value The value to log.
+ */
+function log(value) {
+  if (!cache.has(value)) {
+    cache.set(value, true);
+    console.log(value);
+  }
+}
 
 /**
  * Wraps `oldDash` methods to compare results of `oldDash` and `newDash`.
@@ -67,11 +87,33 @@ function wrapLodash(oldDash, newDash) {
  * @returns {Function} Returns the new wrapped method.
  */
 function wrapMethod(oldDash, newDash, name) {
-  var newFunc = newDash[mapping.rename[name] || name];
+  var newName = mapping.rename[name] || name,
+      newFunc = newDash[newName];
+
   return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
     var that = this,
         argsClone = util.cloneDeep(args);
 
+    var data = {
+      'name': name,
+      'args': util.truncate(
+        util.inspect(args)
+          .match(/^\[\s*([\s\S]*?)\s*\]$/)[1]
+          .replace(/\n */g, ' ')
+      ),
+      'oldData': {
+        'name': name,
+        'version': oldDash.VERSION
+      },
+      'newData': {
+        'name': newName,
+        'version': newDash.VERSION
+      }
+    };
+
+    if (mapping.rename[name]) {
+      log(renameTemplate(data));
+    }
     if (mapping.iteration[name] &&
         (name != 'times' || !reHasReturn.test(argsClone[1]))) {
       argsClone[1] = _.identity;
@@ -85,29 +127,10 @@ function wrapMethod(oldDash, newDash, name) {
         ) {
       return oldResult;
     }
-    // Extract inspected arguments.
-    args = util.inspect(args).match(/^\[\s*([\s\S]*?)\s*\]$/)[1];
-    // Remove newlines.
-    args = args.replace(/\n */g, ' ');
+    data.oldData.result = util.truncate(util.inspect(oldResult));
+    data.newData.result = util.truncate(util.inspect(newResult));
 
-    var message = messageTemplate({
-      'name': name,
-      'args': util.truncate(args),
-      'oldData': {
-        'result': util.truncate(util.inspect(oldResult)),
-        'version': oldDash.VERSION
-      },
-      'newData': {
-        'result': util.truncate(util.inspect(newResult)),
-        'version': newDash.VERSION
-      }
-    });
-
-    // Only log a specific message once.
-    if (!cache.has(message)) {
-      cache.set(message, true);
-      console.log(message);
-    }
+    log(migrateTemplate(data));
     return oldResult;
   }));
 }
