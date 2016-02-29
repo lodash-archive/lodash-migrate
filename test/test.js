@@ -129,6 +129,13 @@ QUnit.module('missing methods');
     assert.deepEqual(logs, [renameText('contains')]);
   });
 
+  QUnit.test('should not error on legacy `_#run` use', function(assert) {
+    assert.expect(1);
+
+    old(1).run();
+    assert.deepEqual(logs, [renameText('run')]);
+  });
+
   QUnit.test('should not error on legacy `_.trunc` use', function(assert) {
     assert.expect(1);
 

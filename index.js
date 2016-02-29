@@ -47,19 +47,19 @@ function log(value) {
  */
 function wrapLodash(oldDash, newDash) {
   // Wrap static methods.
-  _.each(_.difference(_.functionsIn(oldDash), listing.ignored), function(name) {
+  _.each(_.difference(_.functions(oldDash), listing.ignored), function(name) {
     oldDash[name] = wrapMethod(oldDash, newDash, name);
-  });
-
-  // Wrap `_.runInContext.
-  oldDash.runInContext = _.wrap(oldDash.runInContext, function(runInContext, context) {
-    return wrapLodash(runInContext(context), newDash);
   });
 
   // Wrap `_.prototype` methods that return unwrapped values.
   oldDash.mixin(_.transform(listing.unwrapped, function(source, name) {
     source[name] = oldDash[name];
   }, {}), false);
+
+  // Wrap `_.runInContext.
+  oldDash.runInContext = _.wrap(oldDash.runInContext, function(runInContext, context) {
+    return wrapLodash(runInContext(context), newDash);
+  });
 
   // Wrap `_#sample` which can return wrapped and unwrapped values.
   oldDash.prototype.sample = _.wrap(oldDash.sample, function(sample, n) {
@@ -71,6 +71,13 @@ function wrapLodash(oldDash, newDash) {
       result.__chain__ = chainAll;
     }
     return result;
+  });
+
+  // Wrap `_#value` aliases.
+  _.each(mapping.realToAlias.value, function(alias) {
+    if (oldDash.prototype[alias]) {
+      oldDash.prototype[alias] = wrapMethod(oldDash, newDash, alias);
+    }
   });
 
   return oldDash;
@@ -87,10 +94,12 @@ function wrapLodash(oldDash, newDash) {
  * @returns {Function} Returns the new wrapped method.
  */
 function wrapMethod(oldDash, newDash, name) {
-  var newName = mapping.rename[name] || name,
-      newFunc = newDash[newName];
+  var isSeq = _.includes(listing.seqFuncs, name),
+      newName = mapping.rename[name] || name,
+      newFunc = isSeq ? newDash.prototype[newName] : newDash[newName],
+      oldFunc = isSeq ? oldDash.prototype[name] : oldDash[name];
 
-  return _.wrap(oldDash[name], _.rest(function(oldFunc, args) {
+  return _.wrap(oldFunc, _.rest(function(oldFunc, args) {
     var that = this,
         argsClone = util.cloneDeep(args);
 
