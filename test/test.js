@@ -119,7 +119,7 @@ QUnit.module('missing methods');
     assert.expect(1);
 
     old.callback('x');
-    assert.deepEqual(logs, [renameText('callback')]);
+    assert.deepEqual(logs, []);
   });
 
   QUnit.test('should not error on legacy `_.contains` use', function(assert) {

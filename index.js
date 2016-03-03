@@ -95,7 +95,9 @@ function wrapLodash(oldDash, newDash) {
  */
 function wrapMethod(oldDash, newDash, name) {
   var isSeq = _.includes(listing.seqFuncs, name),
-      newName = mapping.rename[name] || name,
+      isSilentRename = _.includes(listing.silentRenames, name);
+
+  var newName = mapping.rename[name] || name,
       newFunc = isSeq ? newDash.prototype[newName] : newDash[newName],
       oldFunc = isSeq ? oldDash.prototype[name] : oldDash[name];
 
@@ -120,7 +122,7 @@ function wrapMethod(oldDash, newDash, name) {
       }
     };
 
-    if (mapping.rename[name]) {
+    if (!isSilentRename && mapping.rename[name]) {
       log(renameTemplate(data));
     }
     if (mapping.iteration[name] &&
