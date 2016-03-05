@@ -103,7 +103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function wrapLodash(oldDash, newDash) {
 	  // Wrap static methods.
-	  _.each(_.difference(_.functions(oldDash), listing.ignored), function(name) {
+	  _.each(_.functions(oldDash), function(name) {
 	    oldDash[name] = wrapMethod(oldDash, newDash, name);
 	  });
 
@@ -150,14 +150,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {Function} Returns the new wrapped method.
 	 */
 	function wrapMethod(oldDash, newDash, name) {
-	  var isSeq = _.includes(listing.seqFuncs, name),
-	      newName = mapping.rename[name] || name,
-	      newFunc = isSeq ? newDash.prototype[newName] : newDash[newName],
-	      oldFunc = isSeq ? oldDash.prototype[name] : oldDash[name];
+	  var ignoreRename = _.includes(listing.ignored.rename, name),
+	      ignoreResult = _.includes(listing.ignored.result, name),
+	      isSeqFunc = _.includes(listing.seqFuncs, name);
+
+	  var newName = mapping.rename[name] || name,
+	      newFunc = isSeqFunc ? newDash.prototype[newName] : newDash[newName],
+	      oldFunc = isSeqFunc ? oldDash.prototype[name] : oldDash[name];
 
 	  return _.wrap(oldFunc, _.rest(function(oldFunc, args) {
-	    var that = this,
-	        argsClone = util.cloneDeep(args);
+	    var that = this;
 
 	    var data = {
 	      'name': name,
@@ -176,9 +178,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    };
 
-	    if (mapping.rename[name]) {
+	    if (!ignoreRename && mapping.rename[name]) {
 	      log(renameTemplate(data));
 	    }
+	    if (ignoreResult) {
+	      return oldFunc.apply(that, args);
+	    }
+	    var argsClone = util.cloneDeep(args);
 	    if (mapping.iteration[name] &&
 	        (name != 'times' || !reHasReturn.test(argsClone[1]))) {
 	      argsClone[1] = _.identity;
@@ -187,15 +193,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        newResult = _.attempt(function() { return newFunc.apply(that, argsClone); });
 
 	    if (util.isComparable(oldResult)
-	          ? util.isEqual(oldResult, newResult)
-	          : !util.isComparable(newResult)
+	          ? !util.isEqual(oldResult, newResult)
+	          : util.isComparable(newResult)
 	        ) {
-	      return oldResult;
+	      log(migrateTemplate(_.merge(data, {
+	        'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
+	        'newData': { 'result': util.truncate(util.inspect(newResult)) }
+	      })));
 	    }
-	    data.oldData.result = util.truncate(util.inspect(oldResult));
-	    data.newData.result = util.truncate(util.inspect(newResult));
-
-	    log(migrateTemplate(data));
 	    return oldResult;
 	  }));
 	}
@@ -27665,12 +27670,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	/** List of methods to ignore when wrapping. */
-	exports.ignored = [
-	  'mixin',
-	  'now',
-	  'runInContext'
-	];
+	/** List of methods that should not emit a log. */
+	exports.ignored = {
+	  'rename': [
+	    'callback',
+	    'createCallback'
+	  ],
+	  'result': [
+	    'mixin',
+	    'now',
+	    'runInContext'
+	  ]
+	};
 
 	/** List of sequence methods without static counterparts. */
 	exports.seqFuncs = [
@@ -27813,10 +27824,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function isComparable(value) {
 	  return (
-	    value == null     || !_.isObject(value) || _.isArguments(value)   ||
-	    _.isArray(value)  || _.isBoolean(value) || _.isDate(value)        ||
-	    _.isError(value)  || _.isNumber(value)  || _.isPlainObject(value) ||
-	    _.isRegExp(value) || _.isString(value)  || _.isTypedArray(value)
+	    value == null         || !_.isObject(value) || _.isArguments(value)   ||
+	    _.isArray(value)      || _.isBoolean(value) || _.isDate(value)        ||
+	    _.isError(value)      || _.isNumber(value)  || _.isPlainObject(value) ||
+	    _.isRegExp(value)     || _.isString(value)  || _.isSymbol(value)      ||
+	    _.isTypedArray(value)
 	  );
 	}
 
