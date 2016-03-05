@@ -47,7 +47,7 @@ function log(value) {
  */
 function wrapLodash(oldDash, newDash) {
   // Wrap static methods.
-  _.each(_.difference(_.functions(oldDash), listing.ignored), function(name) {
+  _.each(_.functions(oldDash), function(name) {
     oldDash[name] = wrapMethod(oldDash, newDash, name);
   });
 
@@ -94,16 +94,16 @@ function wrapLodash(oldDash, newDash) {
  * @returns {Function} Returns the new wrapped method.
  */
 function wrapMethod(oldDash, newDash, name) {
-  var isSeq = _.includes(listing.seqFuncs, name),
-      isSilentRename = _.includes(listing.silentRenames, name);
+  var ignoreRename = _.includes(listing.ignored.rename, name),
+      ignoreResult = _.includes(listing.ignored.result, name),
+      isSeqFunc = _.includes(listing.seqFuncs, name);
 
   var newName = mapping.rename[name] || name,
-      newFunc = isSeq ? newDash.prototype[newName] : newDash[newName],
-      oldFunc = isSeq ? oldDash.prototype[name] : oldDash[name];
+      newFunc = isSeqFunc ? newDash.prototype[newName] : newDash[newName],
+      oldFunc = isSeqFunc ? oldDash.prototype[name] : oldDash[name];
 
   return _.wrap(oldFunc, _.rest(function(oldFunc, args) {
-    var that = this,
-        argsClone = util.cloneDeep(args);
+    var that = this;
 
     var data = {
       'name': name,
@@ -122,9 +122,13 @@ function wrapMethod(oldDash, newDash, name) {
       }
     };
 
-    if (!isSilentRename && mapping.rename[name]) {
+    if (!ignoreRename && mapping.rename[name]) {
       log(renameTemplate(data));
     }
+    if (ignoreResult) {
+      return oldFunc.apply(that, args);
+    }
+    var argsClone = util.cloneDeep(args);
     if (mapping.iteration[name] &&
         (name != 'times' || !reHasReturn.test(argsClone[1]))) {
       argsClone[1] = _.identity;
@@ -133,15 +137,14 @@ function wrapMethod(oldDash, newDash, name) {
         newResult = _.attempt(function() { return newFunc.apply(that, argsClone); });
 
     if (util.isComparable(oldResult)
-          ? util.isEqual(oldResult, newResult)
-          : !util.isComparable(newResult)
+          ? !util.isEqual(oldResult, newResult)
+          : util.isComparable(newResult)
         ) {
-      return oldResult;
+      log(migrateTemplate(_.merge(data, {
+        'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
+        'newData': { 'result': util.truncate(util.inspect(newResult)) }
+      })));
     }
-    data.oldData.result = util.truncate(util.inspect(oldResult));
-    data.newData.result = util.truncate(util.inspect(newResult));
-
-    log(migrateTemplate(data));
     return oldResult;
   }));
 }
