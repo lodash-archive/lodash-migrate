@@ -252,6 +252,19 @@ QUnit.module('old.times');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('old#valueOf');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old([1]).valueOf();
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('logging');
 
 (function() {
