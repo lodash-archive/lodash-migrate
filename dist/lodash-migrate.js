@@ -58,8 +58,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    old = __webpack_require__(3);
 
 	var listing = __webpack_require__(4),
-	    mapping = __webpack_require__(5),
-	    util = __webpack_require__(6);
+	    mapping = __webpack_require__(10),
+	    util = __webpack_require__(5);
 
 	var cache = new _.memoize.Cache,
 	    reHasReturn = /\breturn\b/;
@@ -28506,12 +28506,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
+	var util = __webpack_require__(5),
+	    Hash = util.Hash;
+
+	/*----------------------------------------------------------------------------*/
+
 	/** List of methods that should not emit a log. */
-	exports.ignored = {
+	exports.ignored = new Hash({
 	  'rename': [
 	    'callback',
 	    'createCallback'
@@ -28522,7 +28527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'runInContext',
 	    'uniqueId'
 	  ]
-	};
+	});
 
 	/** List of sequence methods without static counterparts. */
 	exports.seqFuncs = [
@@ -28558,66 +28563,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-
-	/** Used to track iteration functions. */
-	exports.iteration = {
-	  'forEach': true,
-	  'forEachRight': true,
-	  'forIn': true,
-	  'forInRight': true,
-	  'forOwn': true,
-	  'forOwnRight': true,
-	  'times': true,
-
-	  // Method aliases.
-	  'each': true,
-	  'eachRight': true
-	};
-
-	/** Used to map real names to their aliases. */
-	exports.realToAlias = {
-	  'value': ['run', 'toJSON', 'valueOf']
-	};
-
-	/** Used to map old method names to new ones. */
-	exports.rename = {
-	  'all': 'every',
-	  'any': 'some',
-	  'backflow': 'flowRight',
-	  'callback': 'iteratee',
-	  'collect': 'map',
-	  'compose': 'flowRight',
-	  'contains': 'includes',
-	  'createCallback': 'iteratee',
-	  'detect': 'find',
-	  'foldl': 'reduce',
-	  'foldr': 'reduceRight',
-	  'include': 'includes',
-	  'indexBy': 'keyBy',
-	  'inject': 'reduce',
-	  'methods': 'functions',
-	  'modArgs': 'overArgs',
-	  'object': 'fromPairs',
-	  'padLeft': 'padStart',
-	  'padRight': 'padEnd',
-	  'pairs': 'toPairs',
-	  'restParam': 'rest',
-	  'run': 'value',
-	  'select': 'filter',
-	  'sortByOrder': 'orderBy',
-	  'trimLeft': 'trimStart',
-	  'trimRight': 'trimEnd',
-	  'trunc': 'truncate',
-	  'unique': 'uniq'
-	};
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(1);
 
@@ -28643,13 +28591,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 	/**
+	 * Creates a hash object. If a `properties` object is provided, its own
+	 * enumerable properties are assigned to the created object.
+	 *
+	 * @memberOf util
+	 * @param {Object} [properties] The properties to assign to the object.
+	 * @returns {Object} Returns the new hash object.
+	 */
+	function Hash(properties) {
+	  return _.transform(properties, function(result, value, key) {
+	    result[key] = (_.isPlainObject(value) && !(value instanceof Hash))
+	      ? new Hash(value)
+	      : value;
+	  }, this);
+	}
+
+	Hash.prototype = Object.create(null);
+
+	/**
 	 * Creates a string representation of `value`.
 	 *
 	 * @memberOf util
 	 * @param {*} value The value to inspect.
 	 * @returns {string} The string representation.
 	 */
-	var inspect = _.partial(__webpack_require__(7).inspect, _, {
+	var inspect = _.partial(__webpack_require__(6).inspect, _, {
 	  'colors': USE_COLORS
 	});
 
@@ -28720,6 +28686,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = {
 	  'cloneDeep': cloneDeep,
+	  'Hash': Hash,
 	  'inspect': inspect,
 	  'isComparable': isComparable,
 	  'isEqual': isEqual,
@@ -28729,7 +28696,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -29257,7 +29224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(9);
+	exports.isBuffer = __webpack_require__(8);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -29301,7 +29268,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(10);
+	exports.inherits = __webpack_require__(9);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -29319,10 +29286,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(8)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)))
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -29419,7 +29386,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
@@ -29430,7 +29397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -29456,6 +29423,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ctor.prototype.constructor = ctor
 	  }
 	}
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var util = __webpack_require__(5),
+	    Hash = util.Hash;
+
+	/*----------------------------------------------------------------------------*/
+
+	/** Used to track iteration functions. */
+	exports.iteration = new Hash({
+	  'forEach': true,
+	  'forEachRight': true,
+	  'forIn': true,
+	  'forInRight': true,
+	  'forOwn': true,
+	  'forOwnRight': true,
+	  'times': true,
+
+	  // Method aliases.
+	  'each': true,
+	  'eachRight': true
+	});
+
+	/** Used to map real names to their aliases. */
+	exports.realToAlias = new Hash({
+	  'value': ['run', 'toJSON', 'valueOf']
+	});
+
+	/** Used to map old method names to new ones. */
+	exports.rename = new Hash({
+	  'all': 'every',
+	  'any': 'some',
+	  'backflow': 'flowRight',
+	  'callback': 'iteratee',
+	  'collect': 'map',
+	  'compose': 'flowRight',
+	  'contains': 'includes',
+	  'createCallback': 'iteratee',
+	  'detect': 'find',
+	  'foldl': 'reduce',
+	  'foldr': 'reduceRight',
+	  'include': 'includes',
+	  'indexBy': 'keyBy',
+	  'inject': 'reduce',
+	  'methods': 'functions',
+	  'modArgs': 'overArgs',
+	  'object': 'fromPairs',
+	  'padLeft': 'padStart',
+	  'padRight': 'padEnd',
+	  'pairs': 'toPairs',
+	  'restParam': 'rest',
+	  'run': 'value',
+	  'select': 'filter',
+	  'sortByOrder': 'orderBy',
+	  'trimLeft': 'trimStart',
+	  'trimRight': 'trimEnd',
+	  'trunc': 'truncate',
+	  'unique': 'uniq'
+	});
 
 
 /***/ }
