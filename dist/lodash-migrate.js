@@ -216,7 +216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
 	 * @license
-	 * lodash 4.10.0 (Custom Build) <https://lodash.com/>
+	 * lodash 4.11.0 (Custom Build) <https://lodash.com/>
 	 * Build: `lodash -o ./dist/lodash.js`
 	 * Copyright jQuery Foundation and other contributors <https://jquery.org/>
 	 * Released under MIT license <https://lodash.com/license>
@@ -229,7 +229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var undefined;
 
 	  /** Used as the semantic version number. */
-	  var VERSION = '4.10.0';
+	  var VERSION = '4.11.0';
 
 	  /** Used as the size to enable large array optimizations. */
 	  var LARGE_ARRAY_SIZE = 200;
@@ -404,7 +404,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      rsBreakRange = rsMathOpRange + rsNonCharRange + rsQuoteRange + rsSpaceRange;
 
 	  /** Used to compose unicode capture groups. */
-	  var rsAstral = '[' + rsAstralRange + ']',
+	  var rsApos = "['\u2019]",
+	      rsAstral = '[' + rsAstralRange + ']',
 	      rsBreak = '[' + rsBreakRange + ']',
 	      rsCombo = '[' + rsComboMarksRange + rsComboSymbolsRange + ']',
 	      rsDigits = '\\d+',
@@ -422,12 +423,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  /** Used to compose unicode regexes. */
 	  var rsLowerMisc = '(?:' + rsLower + '|' + rsMisc + ')',
 	      rsUpperMisc = '(?:' + rsUpper + '|' + rsMisc + ')',
+	      rsOptLowerContr = '(?:' + rsApos + '(?:d|ll|m|re|s|t|ve))?',
+	      rsOptUpperContr = '(?:' + rsApos + '(?:D|LL|M|RE|S|T|VE))?',
 	      reOptMod = rsModifier + '?',
 	      rsOptVar = '[' + rsVarRange + ']?',
 	      rsOptJoin = '(?:' + rsZWJ + '(?:' + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ')' + rsOptVar + reOptMod + ')*',
 	      rsSeq = rsOptVar + reOptMod + rsOptJoin,
 	      rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq,
 	      rsSymbol = '(?:' + [rsNonAstral + rsCombo + '?', rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ')';
+
+	  /** Used to match apostrophes. */
+	  var reApos = RegExp(rsApos, 'g');
 
 	  /**
 	   * Used to match [combining diacritical marks](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks) and
@@ -440,10 +446,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  /** Used to match complex or compound words. */
 	  var reComplexWord = RegExp([
-	    rsUpper + '?' + rsLower + '+(?=' + [rsBreak, rsUpper, '$'].join('|') + ')',
-	    rsUpperMisc + '+(?=' + [rsBreak, rsUpper + rsLowerMisc, '$'].join('|') + ')',
-	    rsUpper + '?' + rsLowerMisc + '+',
-	    rsUpper + '+',
+	    rsUpper + '?' + rsLower + '+' + rsOptLowerContr + '(?=' + [rsBreak, rsUpper, '$'].join('|') + ')',
+	    rsUpperMisc + '+' + rsOptUpperContr + '(?=' + [rsBreak, rsUpper + rsLowerMisc, '$'].join('|') + ')',
+	    rsUpper + '?' + rsLowerMisc + '+' + rsOptLowerContr,
+	    rsUpper + '+' + rsOptUpperContr,
 	    rsDigits,
 	    rsEmoji
 	  ].join('|'), 'g');
@@ -1598,7 +1604,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    /** Used for built-in method references. */
 	    var arrayProto = context.Array.prototype,
-	        objectProto = context.Object.prototype;
+	        objectProto = context.Object.prototype,
+	        stringProto = context.String.prototype;
 
 	    /** Used to resolve the decompiled source of functions. */
 	    var funcToString = context.Function.prototype.toString;
@@ -1653,7 +1660,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        nativeMin = Math.min,
 	        nativeParseInt = context.parseInt,
 	        nativeRandom = Math.random,
-	        nativeReverse = arrayProto.reverse;
+	        nativeReplace = stringProto.replace,
+	        nativeReverse = arrayProto.reverse,
+	        nativeSplit = stringProto.split;
 
 	    /* Built-in method references that are verified to be native. */
 	    var DataView = getNative(context, 'DataView'),
@@ -1766,7 +1775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * `isSet`, `isString`, `isUndefined`, `isTypedArray`, `isWeakMap`, `isWeakSet`,
 	     * `join`, `kebabCase`, `last`, `lastIndexOf`, `lowerCase`, `lowerFirst`,
 	     * `lt`, `lte`, `max`, `maxBy`, `mean`, `meanBy`, `min`, `minBy`, `multiply`,
-	     * `noConflict`, `noop`, `now`, `pad`, `padEnd`, `padStart`, `parseInt`,
+	     * `noConflict`, `noop`, `now`, `nth`, `pad`, `padEnd`, `padStart`, `parseInt`,
 	     * `pop`, `random`, `reduce`, `reduceRight`, `repeat`, `result`, `round`,
 	     * `runInContext`, `sample`, `shift`, `size`, `snakeCase`, `some`, `sortedIndex`,
 	     * `sortedIndexBy`, `sortedLastIndex`, `sortedLastIndexBy`, `startCase`,
@@ -3508,6 +3517,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
+	     * The base implementation of `_.nth` which doesn't coerce `n` to an integer.
+	     *
+	     * @private
+	     * @param {Array} array The array to inspect.
+	     * @param {number} n The index of the element to return.
+	     * @returns {*} Returns the nth element.
+	     */
+	    function baseNth(array, n) {
+	      var length = array.length;
+	      if (!length) {
+	        return;
+	      }
+	      n += n < 0 ? length : 0;
+	      return isIndex(n, length) ? array[n] : undefined;
+	    }
+
+	    /**
 	     * The base implementation of `_.orderBy` without param guards.
 	     *
 	     * @private
@@ -3518,7 +3544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function baseOrderBy(collection, iteratees, orders) {
 	      var index = -1;
-	      iteratees = arrayMap(iteratees.length ? iteratees : [identity], getIteratee());
+	      iteratees = arrayMap(iteratees.length ? iteratees : [identity], baseUnary(getIteratee()));
 
 	      var result = baseMap(collection, function(value, key, collection) {
 	        var criteria = arrayMap(iteratees, function(iteratee) {
@@ -4391,24 +4417,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param {Object} source The object to copy properties from.
 	     * @param {Array} props The property identifiers to copy.
 	     * @param {Object} [object={}] The object to copy properties to.
-	     * @returns {Object} Returns `object`.
-	     */
-	    function copyObject(source, props, object) {
-	      return copyObjectWith(source, props, object);
-	    }
-
-	    /**
-	     * This function is like `copyObject` except that it accepts a function to
-	     * customize copied values.
-	     *
-	     * @private
-	     * @param {Object} source The object to copy properties from.
-	     * @param {Array} props The property identifiers to copy.
-	     * @param {Object} [object={}] The object to copy properties to.
 	     * @param {Function} [customizer] The function to customize copied values.
 	     * @returns {Object} Returns `object`.
 	     */
-	    function copyObjectWith(source, props, object, customizer) {
+	    function copyObject(source, props, object, customizer) {
 	      object || (object = {});
 
 	      var index = -1,
@@ -4599,7 +4611,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function createCompounder(callback) {
 	      return function(string) {
-	        return arrayReduce(words(deburr(string)), callback, '');
+	        return arrayReduce(words(deburr(string).replace(reApos, '')), callback, '');
 	      };
 	    }
 
@@ -4835,7 +4847,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function createOver(arrayFunc) {
 	      return rest(function(iteratees) {
-	        iteratees = arrayMap(baseFlatten(iteratees, 1, isFlattenableIteratee), getIteratee());
+	        iteratees = (iteratees.length == 1 && isArray(iteratees[0]))
+	          ? arrayMap(iteratees[0], baseUnary(getIteratee()))
+	          : arrayMap(baseFlatten(iteratees, 1, isFlattenableIteratee), baseUnary(getIteratee()));
+
 	        return rest(function(args) {
 	          var thisArg = this;
 	          return arrayFunc(iteratees, function(iteratee) {
@@ -4949,7 +4964,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function createRecurryWrapper(func, bitmask, wrapFunc, placeholder, thisArg, partials, holders, argPos, ary, arity) {
 	      var isCurry = bitmask & CURRY_FLAG,
-	          newArgPos = argPos ? copyArray(argPos) : undefined,
 	          newHolders = isCurry ? holders : undefined,
 	          newHoldersRight = isCurry ? undefined : holders,
 	          newPartials = isCurry ? partials : undefined,
@@ -4963,7 +4977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      var newData = [
 	        func, bitmask, thisArg, newPartials, newHolders, newPartialsRight,
-	        newHoldersRight, newArgPos, ary, arity
+	        newHoldersRight, argPos, ary, arity
 	      ];
 
 	      var result = wrapFunc.apply(undefined, newData);
@@ -5876,20 +5890,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var value = source[3];
 	      if (value) {
 	        var partials = data[3];
-	        data[3] = partials ? composeArgs(partials, value, source[4]) : copyArray(value);
-	        data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : copyArray(source[4]);
+	        data[3] = partials ? composeArgs(partials, value, source[4]) : value;
+	        data[4] = partials ? replaceHolders(data[3], PLACEHOLDER) : source[4];
 	      }
 	      // Compose partial right arguments.
 	      value = source[5];
 	      if (value) {
 	        partials = data[5];
-	        data[5] = partials ? composeArgsRight(partials, value, source[6]) : copyArray(value);
-	        data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : copyArray(source[6]);
+	        data[5] = partials ? composeArgsRight(partials, value, source[6]) : value;
+	        data[6] = partials ? replaceHolders(data[5], PLACEHOLDER) : source[6];
 	      }
 	      // Use source `argPos` if available.
 	      value = source[7];
 	      if (value) {
-	        data[7] = copyArray(value);
+	        data[7] = value;
 	      }
 	      // Use source `ary` if it's smaller.
 	      if (srcBitmask & ARY_FLAG) {
@@ -6644,7 +6658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => undefined
 	     */
 	    function head(array) {
-	      return array ? array[0] : undefined;
+	      return (array && array.length) ? array[0] : undefined;
 	    }
 
 	    /**
@@ -6878,6 +6892,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	      return -1;
+	    }
+
+	    /**
+	     * Gets the nth element of `array`. If `n` is negative, the nth element
+	     * from the end is returned.
+	     *
+	     * @static
+	     * @memberOf _
+	     * @since 4.11.0
+	     * @category Array
+	     * @param {Array} array The array to inspect.
+	     * @param {number} [n=0] The index of the element to return..
+	     * @returns {*} Returns the nth element.
+	     * @example
+	     *
+	     * var array = ['a', 'b', 'c', 'd'];
+	     *
+	     * _.nth(array, 1);
+	     * // => 'b'
+	     *
+	     * _.nth(array, -2);
+	     * // => 'c';
+	     */
+	    function nth(array, n) {
+	      return (array && array.length) ? baseNth(array, toInteger(n)) : undefined;
 	    }
 
 	    /**
@@ -9183,7 +9222,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else if (length > 2 && isIterateeCall(iteratees[0], iteratees[1], iteratees[2])) {
 	        iteratees = [iteratees[0]];
 	      }
-	      return baseOrderBy(collection, baseFlatten(iteratees, 1), []);
+	      iteratees = (iteratees.length == 1 && isArray(iteratees[0]))
+	        ? iteratees[0]
+	        : baseFlatten(iteratees, 1, isFlattenableIteratee);
+
+	      return baseOrderBy(collection, iteratees, []);
 	    });
 
 	    /*------------------------------------------------------------------------*/
@@ -9881,7 +9924,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => [100, 10]
 	     */
 	    var overArgs = rest(function(func, transforms) {
-	      transforms = arrayMap(baseFlatten(transforms, 1, isFlattenableIteratee), getIteratee());
+	      transforms = (transforms.length == 1 && isArray(transforms[0]))
+	        ? arrayMap(transforms[0], baseUnary(getIteratee()))
+	        : arrayMap(baseFlatten(transforms, 1, isFlattenableIteratee), baseUnary(getIteratee()));
+
 	      var funcsLength = transforms.length;
 	      return rest(function(args) {
 	        var index = -1,
@@ -11887,7 +11933,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => { 'a': 1, 'b': 2 }
 	     */
 	    var assignInWith = createAssigner(function(object, source, srcIndex, customizer) {
-	      copyObjectWith(source, keysIn(source), object, customizer);
+	      copyObject(source, keysIn(source), object, customizer);
 	    });
 
 	    /**
@@ -11918,7 +11964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => { 'a': 1, 'b': 2 }
 	     */
 	    var assignWith = createAssigner(function(object, source, srcIndex, customizer) {
-	      copyObjectWith(source, keys(source), object, customizer);
+	      copyObject(source, keys(source), object, customizer);
 	    });
 
 	    /**
@@ -13745,7 +13791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var args = arguments,
 	          string = toString(args[0]);
 
-	      return args.length < 3 ? string : string.replace(args[1], args[2]);
+	      return args.length < 3 ? string : nativeReplace.call(string, args[1], args[2]);
 	    }
 
 	    /**
@@ -13810,7 +13856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return castSlice(stringToArray(string), 0, limit);
 	        }
 	      }
-	      return string.split(separator, limit);
+	      return nativeSplit.call(string, separator, limit);
 	    }
 
 	    /**
@@ -14934,7 +14980,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
-	     * Creates a function that returns its nth argument.
+	     * Creates a function that returns its nth argument. If `n` is negative,
+	     * the nth argument from the end is returned.
 	     *
 	     * @static
 	     * @memberOf _
@@ -14945,15 +14992,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @example
 	     *
 	     * var func = _.nthArg(1);
-	     *
-	     * func('a', 'b', 'c');
+	     * func('a', 'b', 'c', 'd');
 	     * // => 'b'
+	     *
+	     * var func = _.nthArg(-2);
+	     * func('a', 'b', 'c', 'd');
+	     * // => 'c'
 	     */
 	    function nthArg(n) {
 	      n = toInteger(n);
-	      return function() {
-	        return arguments[n];
-	      };
+	      return rest(function(args) {
+	        return baseNth(args, n);
+	      });
 	    }
 
 	    /**
@@ -15861,6 +15911,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    lodash.min = min;
 	    lodash.minBy = minBy;
 	    lodash.multiply = multiply;
+	    lodash.nth = nth;
 	    lodash.noConflict = noConflict;
 	    lodash.noop = noop;
 	    lodash.now = now;
