@@ -1,6 +1,6 @@
 {
   "name": "lodash-migrate",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "Migrate to the latest Lodash release.",
   "icon": "https://lodash.com/icon.svg",
   "license": "MIT",
