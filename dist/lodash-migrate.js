@@ -216,7 +216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
 	 * @license
-	 * lodash 4.11.0 (Custom Build) <https://lodash.com/>
+	 * lodash 4.11.1 (Custom Build) <https://lodash.com/>
 	 * Build: `lodash -o ./dist/lodash.js`
 	 * Copyright jQuery Foundation and other contributors <https://jquery.org/>
 	 * Released under MIT license <https://lodash.com/license>
@@ -229,7 +229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var undefined;
 
 	  /** Used as the semantic version number. */
-	  var VERSION = '4.11.0';
+	  var VERSION = '4.11.1';
 
 	  /** Used as the size to enable large array optimizations. */
 	  var LARGE_ARRAY_SIZE = 200;
@@ -3520,9 +3520,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * The base implementation of `_.nth` which doesn't coerce `n` to an integer.
 	     *
 	     * @private
-	     * @param {Array} array The array to inspect.
+	     * @param {Array} array The array to query.
 	     * @param {number} n The index of the element to return.
-	     * @returns {*} Returns the nth element.
+	     * @returns {*} Returns the nth element of `array`.
 	     */
 	    function baseNth(array, n) {
 	      var length = array.length;
@@ -6902,9 +6902,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @memberOf _
 	     * @since 4.11.0
 	     * @category Array
-	     * @param {Array} array The array to inspect.
-	     * @param {number} [n=0] The index of the element to return..
-	     * @returns {*} Returns the nth element.
+	     * @param {Array} array The array to query.
+	     * @param {number} [n=0] The index of the element to return.
+	     * @returns {*} Returns the nth element of `array`.
 	     * @example
 	     *
 	     * var array = ['a', 'b', 'c', 'd'];
@@ -9589,12 +9589,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function debounce(func, wait, options) {
 	      var lastArgs,
 	          lastThis,
+	          maxWait,
 	          result,
 	          timerId,
 	          lastCallTime = 0,
 	          lastInvokeTime = 0,
 	          leading = false,
-	          maxWait = false,
+	          maxing = false,
 	          trailing = true;
 
 	      if (typeof func != 'function') {
@@ -9603,7 +9604,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      wait = toNumber(wait) || 0;
 	      if (isObject(options)) {
 	        leading = !!options.leading;
-	        maxWait = 'maxWait' in options && nativeMax(toNumber(options.maxWait) || 0, wait);
+	        maxing = 'maxWait' in options;
+	        maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
 	        trailing = 'trailing' in options ? !!options.trailing : trailing;
 	      }
 
@@ -9631,7 +9633,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            timeSinceLastInvoke = time - lastInvokeTime,
 	            result = wait - timeSinceLastCall;
 
-	        return maxWait === false ? result : nativeMin(result, maxWait - timeSinceLastInvoke);
+	        return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
 	      }
 
 	      function shouldInvoke(time) {
@@ -9642,7 +9644,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // trailing edge, the system time has gone backwards and we're treating
 	        // it as the trailing edge, or we've hit the `maxWait` limit.
 	        return (!lastCallTime || (timeSinceLastCall >= wait) ||
-	          (timeSinceLastCall < 0) || (maxWait !== false && timeSinceLastInvoke >= maxWait));
+	          (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
 	      }
 
 	      function timerExpired() {
@@ -9691,10 +9693,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (timerId === undefined) {
 	            return leadingEdge(lastCallTime);
 	          }
-	          // Handle invocations in a tight loop.
-	          clearTimeout(timerId);
-	          timerId = setTimeout(timerExpired, wait);
-	          return invokeFunc(lastCallTime);
+	          if (maxing) {
+	            // Handle invocations in a tight loop.
+	            clearTimeout(timerId);
+	            timerId = setTimeout(timerExpired, wait);
+	            return invokeFunc(lastCallTime);
+	          }
 	        }
 	        if (timerId === undefined) {
 	          timerId = setTimeout(timerExpired, wait);
@@ -14915,7 +14919,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        object = this;
 	        methodNames = baseFunctions(source, keys(source));
 	      }
-	      var chain = (isObject(options) && 'chain' in options) ? options.chain : true,
+	      var chain = !(isObject(options) && 'chain' in options) || !!options.chain,
 	          isFunc = isFunction(object);
 
 	      arrayEach(methodNames, function(methodName) {
