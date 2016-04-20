@@ -2,22 +2,21 @@
   "name": "lodash-migrate",
   "version": "0.2.20",
   "description": "Migrate to the latest Lodash release.",
-  "icon": "https://lodash.com/icon.svg",
+  "keywords": "compatibility, lodash, update",
+  "repository": "lodash/lodash-migrate",
   "license": "MIT",
   "main": "index.js",
-  "keywords": "compatibility, lodash, update",
   "author": "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",
   "contributors": [
     "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",
     "Blaine Bublitz <blaine.bublitz@gmail.com> (https://github.com/phated)",
     "Mathias Bynens <mathias@qiwi.be> (https://mathiasbynens.be/)"
   ],
-  "repository": "lodash/lodash-migrate",
   "scripts": {
-    "test": "echo \"See the repository CONTRIBUTING.md for testing instructions.\"",
     "build": "npm run build:dev & npm run build:prod",
     "build:dev": "webpack ./index.js dist/lodash-migrate.js --env development",
-    "build:prod": "webpack ./index.js dist/lodash-migrate.min.js --env production"
+    "build:prod": "webpack ./index.js dist/lodash-migrate.min.js --env production",
+    "test": "echo \"See the repository CONTRIBUTING.md for testing instructions.\""
   },
   "devDependencies": {
     "lodash": "^3.10.1",
