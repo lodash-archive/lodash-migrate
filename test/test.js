@@ -1,17 +1,11 @@
 var _ = require('../lodash'),
     old = require('lodash'),
     mapping = require('../lib/mapping'),
+    QUnit = require('qunit-extras'),
     util = require('../lib/util');
 
 var logs = [],
     reColor = /\x1b\[\d+m/g;
-
-global.QUnit = require('qunitjs');
-require('qunit-extras').runInContext(global);
-
-QUnit.testStart(function() {
-  logs.length = 0;
-});
 
 /*----------------------------------------------------------------------------*/
 
@@ -68,6 +62,10 @@ function renameText(name) {
 }
 
 /*----------------------------------------------------------------------------*/
+
+QUnit.testStart(function() {
+  logs.length = 0;
+});
 
 QUnit.module('lodash-migrate');
 
