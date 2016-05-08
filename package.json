@@ -14,8 +14,8 @@
   ],
   "scripts": {
     "build": "npm run build:dev & npm run build:prod",
-    "build:dev": "webpack ./index.js dist/lodash-migrate.js --env development",
-    "build:prod": "webpack ./index.js dist/lodash-migrate.min.js --env production",
+    "build:dev": "webpack index.js dist/lodash-migrate.js --env development",
+    "build:prod": "webpack index.js dist/lodash-migrate.min.js --env production",
     "test": "node test"
   },
   "devDependencies": {
