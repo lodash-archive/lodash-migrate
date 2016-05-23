@@ -14,7 +14,17 @@ var config = {
 if (env == 'production') {
   config.plugins = [
     new webpack.optimize.OccurenceOrderPlugin,
-    new webpack.optimize.UglifyJsPlugin
+    new webpack.optimize.UglifyJsPlugin({
+      'compress': {
+        'pure_getters': true,
+        'unsafe': true,
+        'warnings': false
+      },
+      'output': {
+        'ascii_only': true,
+        'max_line_len': 500
+      }
+    })
   ];
 }
 
