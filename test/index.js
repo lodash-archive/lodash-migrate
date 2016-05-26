@@ -82,8 +82,8 @@ QUnit.module('lodash-migrate');
 QUnit.module('iteration method');
 
 (function() {
-  QUnit.test('should not double up on `iteratee` invocations', function(assert) {
-    assert.expect(9);
+  QUnit.test('should not invoke `iteratee` in new lodash', function(assert) {
+    assert.expect(8);
 
     var count,
         array = [1],
@@ -101,10 +101,6 @@ QUnit.module('iteration method');
       old[methodName](object, iteratee);
       assert.strictEqual(count, 1, methodName);
     });
-
-    count = 0;
-    old.times(1, iteratee);
-    assert.strictEqual(count, 1, 'times');
   });
 }());
 
@@ -181,6 +177,58 @@ QUnit.module('mutator methods');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('old.defer');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.defer(_.identity);
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.delay');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.delay(_.identity, 1);
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.mixin');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.mixin();
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.now');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.now();
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('old.runInContext');
 
 (function() {
@@ -204,15 +252,22 @@ QUnit.module('old.runInContext');
     assert.strictEqual(count, 1);
   });
 
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.runInContext();
+    assert.deepEqual(logs, []);
+  });
+
   QUnit.test('should wrap results', function(assert) {
     assert.expect(1);
 
     var lodash = old.runInContext(),
         objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
-        expected = [migrateText('max', [objects, 'a'], objects[2], objects[0])];
+        expected = migrateText('max', [objects, 'a'], objects[2], objects[0]);
 
     lodash.max(objects, 'a');
-    assert.deepEqual(logs, expected);
+    assert.strictEqual(_.last(logs), expected);
   });
 }());
 
@@ -237,14 +292,29 @@ QUnit.module('old.sample');
 QUnit.module('old.times');
 
 (function() {
-  QUnit.test('should invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
+  QUnit.test('should only invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
+    assert.expect(2);
+
+    var count= 0;
+    old.times(1, function() { count++; });
+    assert.strictEqual(count, 1);
+
+    count = 0;
+    old.times(1, function() { count++; return; });
+    assert.strictEqual(count, 2);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.uniqueId');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
     assert.expect(1);
 
-    var count= 0,
-        iteratee = function() { count++; return; };
-
-    old.times(1, iteratee);
-    assert.strictEqual(count, 2);
+    old.uniqueId();
+    assert.deepEqual(logs, []);
   });
 }());
 
