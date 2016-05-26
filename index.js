@@ -128,9 +128,11 @@ function wrapMethod(oldDash, newDash, name) {
     if (ignoreResult) {
       return oldFunc.apply(that, args);
     }
-    var argsClone = util.cloneDeep(args);
-    if (mapping.iteration[name] &&
-        (name != 'times' || !reHasReturn.test(argsClone[1]))) {
+    var argsClone = util.cloneDeep(args),
+        isIteration = mapping.iteration[name];
+
+    if (isIteration &&
+        !(isIteration.mappable && reHasReturn.test(argsClone[1]))) {
       argsClone[1] = _.identity;
     }
     var oldResult = oldFunc.apply(that, args),
