@@ -1,3 +1,5 @@
+'use strict';
+
 var _ = require('../lodash'),
     old = require('lodash'),
     mapping = require('../lib/mapping'),
