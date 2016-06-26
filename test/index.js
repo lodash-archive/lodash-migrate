@@ -125,6 +125,15 @@ QUnit.module('missing methods');
     assert.deepEqual(logs, [renameText('contains')]);
   });
 
+  QUnit.test('should not error on legacy `_.indexBy` use', function(assert) {
+    assert.expect(1);
+
+    var object = { 'a': 'x' };
+
+    old(object).indexBy(_.identity).value();
+    assert.deepEqual(logs, [renameText('indexBy')]);
+  });
+
   QUnit.test('should not error on legacy `_#run` use', function(assert) {
     assert.expect(1);
 

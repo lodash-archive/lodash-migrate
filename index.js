@@ -48,20 +48,22 @@ function log(value) {
  * @returns {Function} Returns `oldDash`.
  */
 function wrapLodash(oldDash, newDash) {
-  // Wrap static methods.
-  _.each(_.functions(oldDash), function(name) {
-    oldDash[name] = wrapMethod(oldDash, newDash, name);
-  });
+  var methodNames = _.functions(oldDash),
+      unwrapped = _.difference(listing.unwrapped, listing.seqFuncs),
+      wrapped = _.difference(methodNames, unwrapped, listing.seqFuncs),
+      oldRunInContext = oldDash.runInContext;
 
-  // Wrap `_.prototype` methods that return unwrapped values.
-  oldDash.mixin(_.transform(listing.unwrapped, function(source, name) {
-    source[name] = oldDash[name];
-  }, {}), false);
+  // Wrap methods.
+  _.each([unwrapped, wrapped], function(names, index) {
+    oldDash.mixin(_.transform(names, function(source, name) {
+      source[name] = wrapMethod(oldDash, newDash, name);
+    }, {}), !!index);
+  });
 
   // Wrap `_.runInContext.
-  oldDash.runInContext = _.wrap(oldDash.runInContext, function(runInContext, context) {
-    return wrapLodash(runInContext(context), newDash);
-  });
+  oldDash.runInContext = function(context) {
+    return wrapLodash(oldRunInContext(context), newDash);
+  };
 
   // Wrap `_#sample` which can return wrapped and unwrapped values.
   oldDash.prototype.sample = _.wrap(oldDash.sample, function(sample, n) {
@@ -75,10 +77,10 @@ function wrapLodash(oldDash, newDash) {
     return result;
   });
 
-  // Wrap `_#value` aliases.
-  _.each(mapping.realToAlias.value, function(alias) {
-    if (oldDash.prototype[alias]) {
-      oldDash.prototype[alias] = wrapMethod(oldDash, newDash, alias);
+  // Wrap chain sequence methods.
+  _.each(listing.seqFuncs, function(name) {
+    if (oldDash.prototype[name]) {
+      oldDash.prototype[name] = wrapMethod(oldDash, newDash, name);
     }
   });
 
@@ -102,7 +104,9 @@ function wrapMethod(oldDash, newDash, name) {
 
   var newName = mapping.rename[name] || name,
       newFunc = isSeqFunc ? newDash.prototype[newName] : newDash[newName],
-      oldFunc = isSeqFunc ? oldDash.prototype[name] : oldDash[name];
+      newVer  = newDash.VERSION,
+      oldFunc = isSeqFunc ? oldDash.prototype[name] : oldDash[name],
+      oldVer  = oldDash.VERSION;
 
   return _.wrap(oldFunc, _.rest(function(oldFunc, args) {
     var that = this;
@@ -116,11 +120,11 @@ function wrapMethod(oldDash, newDash, name) {
       ),
       'oldData': {
         'name': name,
-        'version': oldDash.VERSION
+        'version': oldVer
       },
       'newData': {
         'name': newName,
-        'version': newDash.VERSION
+        'version': newVer
       }
     };
 
