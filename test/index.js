@@ -121,7 +121,7 @@ QUnit.module('missing methods');
   QUnit.test('should not error on legacy `_.contains` use', function(assert) {
     assert.expect(1);
 
-    old.contains([1, 2, 3], 2);
+    old([1, 2, 3]).contains(2);
     assert.deepEqual(logs, [renameText('contains')]);
   });
 
