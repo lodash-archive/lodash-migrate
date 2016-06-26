@@ -49,7 +49,7 @@ function log(value) {
  */
 function wrapLodash(oldDash, newDash) {
   var methodNames = _.functions(oldDash),
-      unwrapped = _.difference(listing.unwrapped, listing.seqFuncs),
+      unwrapped = listing.unwrapped,
       wrapped = _.difference(methodNames, unwrapped, listing.seqFuncs),
       oldRunInContext = oldDash.runInContext;
 
