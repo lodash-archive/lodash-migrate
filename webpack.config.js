@@ -13,7 +13,7 @@ var config = {
 
 if (env == 'production') {
   config.plugins = [
-    new webpack.optimize.OccurenceOrderPlugin,
+    new webpack.optimize.OccurrenceOrderPlugin,
     new webpack.optimize.UglifyJsPlugin({
       'compress': {
         'pure_getters': true,
