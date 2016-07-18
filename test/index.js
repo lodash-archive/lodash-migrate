@@ -67,17 +67,10 @@ function renameText(name) {
 
 QUnit.testStart(function() {
   logs.length = 0;
+  require('../index')
 });
 
 QUnit.module('lodash-migrate');
-
-(function() {
-  QUnit.test('should return older lodash', function(assert) {
-    assert.expect(1);
-
-    assert.strictEqual(require('../index.js'), old);
-  });
-}());
 
 /*----------------------------------------------------------------------------*/
 

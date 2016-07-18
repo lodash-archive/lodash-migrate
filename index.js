@@ -7,7 +7,7 @@ var listing = require('./lib/listing'),
     mapping = require('./lib/mapping'),
     util = require('./lib/util');
 
-var cache = new _.memoize.Cache,
+var config = require('./lib/default-config'),
     reHasReturn = /\breturn\b/;
 
 var migrateTemplate = _.template([
@@ -25,19 +25,6 @@ var renameTemplate = _.template([
 ].join('\n'));
 
 /*----------------------------------------------------------------------------*/
-
-/**
- * Logs `value` if it hasn't been logged before.
- *
- * @private
- * @param {*} value The value to log.
- */
-function log(value) {
-  if (!cache.has(value)) {
-    cache.set(value, true);
-    console.log(value);
-  }
-}
 
 /**
  * Wraps `oldDash` methods to compare results of `oldDash` and `newDash`.
@@ -129,7 +116,7 @@ function wrapMethod(oldDash, newDash, name) {
     };
 
     if (!ignoreRename && mapping.rename[name]) {
-      log(renameTemplate(data));
+      config.log(renameTemplate(data));
     }
     if (ignoreResult) {
       return oldFunc.apply(that, args);
@@ -148,7 +135,7 @@ function wrapMethod(oldDash, newDash, name) {
           ? !util.isEqual(oldResult, newResult)
           : util.isComparable(newResult)
         ) {
-      log(migrateTemplate(_.merge(data, {
+      config.log(migrateTemplate(_.merge(data, {
         'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
         'newData': { 'result': util.truncate(util.inspect(newResult)) }
       })));
@@ -159,4 +146,4 @@ function wrapMethod(oldDash, newDash, name) {
 
 /*----------------------------------------------------------------------------*/
 
-module.exports = wrapLodash(old, _);
+wrapLodash(old, _);
