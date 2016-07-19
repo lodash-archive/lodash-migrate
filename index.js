@@ -16,20 +16,6 @@ wrapLodash(old, _);
 
 module.exports = _.partial(_.assign, config);
 
-var migrateTemplate = _.template([
-  'lodash-migrate: _.<%= name %>(<%= args %>)',
-  '  v<%= oldData.version %> => <%= oldData.result %>',
-  '  v<%= newData.version %> => <%= newData.result %>',
-  ''
-].join('\n'));
-
-var renameTemplate = _.template([
-  'lodash-migrate: Method renamed',
-  '  v<%= oldData.version %> => _.<%= oldData.name %>',
-  '  v<%= newData.version %> => _.<%= newData.name %>',
-  ''
-].join('\n'));
-
 /*----------------------------------------------------------------------------*/
 
 /**
@@ -122,7 +108,7 @@ function wrapMethod(oldDash, newDash, name) {
     };
 
     if (!ignoreRename && mapping.rename[name]) {
-      config.log(renameTemplate(data));
+      config.log(config.renameTemplate(data));
     }
     if (ignoreResult) {
       return oldFunc.apply(that, args);
@@ -141,7 +127,7 @@ function wrapMethod(oldDash, newDash, name) {
           ? !util.isEqual(oldResult, newResult)
           : util.isComparable(newResult)
         ) {
-      config.log(migrateTemplate(_.merge(data, {
+      config.log(config.migrateTemplate(_.merge(data, {
         'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
         'newData': { 'result': util.truncate(util.inspect(newResult)) }
       })));
