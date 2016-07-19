@@ -3,12 +3,20 @@
 var _ = require('./lodash'),
     old = require('lodash');
 
-var listing = require('./lib/listing'),
+var defaultConfig = require('./lib/default-config'),
+    listing = require('./lib/listing'),
     mapping = require('./lib/mapping'),
     util = require('./lib/util');
 
-var config = require('./lib/default-config'),
+var config = {},
     reHasReturn = /\breturn\b/;
+
+/*----------------------------------------------------------------------------*/
+
+configure(defaultConfig);
+wrapLodash(old, _);
+
+module.exports = configure;
 
 var migrateTemplate = _.template([
   'lodash-migrate: _.<%= name %>(<%= args %>)',
@@ -144,6 +152,11 @@ function wrapMethod(oldDash, newDash, name) {
   }));
 }
 
-/*----------------------------------------------------------------------------*/
-
-wrapLodash(old, _);
+/**
+ * Accepts configuration options and assigns them to the config singleton.
+ *
+ * @param {object} options Custom configuration options
+ */
+function configure (options) {
+  _.assign(config, options);
+}
