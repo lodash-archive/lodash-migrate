@@ -7,37 +7,16 @@ var listing = require('./lib/listing'),
     mapping = require('./lib/mapping'),
     util = require('./lib/util');
 
-var cache = new _.memoize.Cache,
+var config = _.clone(require('./lib/default-config')),
     reHasReturn = /\breturn\b/;
-
-var migrateTemplate = _.template([
-  'lodash-migrate: _.<%= name %>(<%= args %>)',
-  '  v<%= oldData.version %> => <%= oldData.result %>',
-  '  v<%= newData.version %> => <%= newData.result %>',
-  ''
-].join('\n'));
-
-var renameTemplate = _.template([
-  'lodash-migrate: Method renamed',
-  '  v<%= oldData.version %> => _.<%= oldData.name %>',
-  '  v<%= newData.version %> => _.<%= newData.name %>',
-  ''
-].join('\n'));
 
 /*----------------------------------------------------------------------------*/
 
-/**
- * Logs `value` if it hasn't been logged before.
- *
- * @private
- * @param {*} value The value to log.
- */
-function log(value) {
-  if (!cache.has(value)) {
-    cache.set(value, true);
-    console.log(value);
-  }
-}
+wrapLodash(old, _);
+
+module.exports = _.partial(_.assign, config);
+
+/*----------------------------------------------------------------------------*/
 
 /**
  * Wraps `oldDash` methods to compare results of `oldDash` and `newDash`.
@@ -129,7 +108,7 @@ function wrapMethod(oldDash, newDash, name) {
     };
 
     if (!ignoreRename && mapping.rename[name]) {
-      log(renameTemplate(data));
+      config.log(config.renameMessage(data));
     }
     if (ignoreResult) {
       return oldFunc.apply(that, args);
@@ -148,7 +127,7 @@ function wrapMethod(oldDash, newDash, name) {
           ? !util.isEqual(oldResult, newResult)
           : util.isComparable(newResult)
         ) {
-      log(migrateTemplate(_.merge(data, {
+      config.log(config.migrateMessage(_.merge(data, {
         'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
         'newData': { 'result': util.truncate(util.inspect(newResult)) }
       })));
@@ -156,7 +135,3 @@ function wrapMethod(oldDash, newDash, name) {
     return oldResult;
   }));
 }
-
-/*----------------------------------------------------------------------------*/
-
-module.exports = wrapLodash(old, _);

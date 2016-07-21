@@ -67,15 +67,33 @@ function renameText(name) {
 
 QUnit.testStart(function() {
   logs.length = 0;
+  require('../index')
 });
 
 QUnit.module('lodash-migrate');
 
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('logging method');
+
 (function() {
-  QUnit.test('should return older lodash', function(assert) {
+  QUnit.test('should be configurable', function(assert) {
     assert.expect(1);
 
-    assert.strictEqual(require('../index.js'), old);
+    // Provide custom logging function
+    require('../index')({
+      log: function(message) {
+        assert.deepEqual(message, expected + '\n');
+      }
+    });
+
+    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
+        expected = migrateText('max', [objects, 'b'], objects[2], objects[0]);
+
+    old.max(objects, 'b');
+
+    // Restore default configuration
+    require('../index')(require('../lib/default-config'));
   });
 }());
 
