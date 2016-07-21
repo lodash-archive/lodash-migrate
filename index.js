@@ -12,12 +12,6 @@ var config = _.clone(require('./lib/default-config')),
 
 /*----------------------------------------------------------------------------*/
 
-wrapLodash(old, _);
-
-module.exports = _.partial(_.assign, config);
-
-/*----------------------------------------------------------------------------*/
-
 /**
  * Wraps `oldDash` methods to compare results of `oldDash` and `newDash`.
  *
@@ -135,3 +129,9 @@ function wrapMethod(oldDash, newDash, name) {
     return oldResult;
   }));
 }
+
+/*----------------------------------------------------------------------------*/
+
+wrapLodash(old, _);
+
+module.exports = _.partial(_.assign, config);

@@ -67,7 +67,6 @@ function renameText(name) {
 
 QUnit.testStart(function() {
   logs.length = 0;
-  require('../index')
 });
 
 QUnit.module('lodash-migrate');
@@ -80,9 +79,9 @@ QUnit.module('logging method');
   QUnit.test('should be configurable', function(assert) {
     assert.expect(1);
 
-    // Provide custom logging function
+    // Provide custom logging function.
     require('../index')({
-      log: function(message) {
+      'log': function(message) {
         assert.deepEqual(message, expected + '\n');
       }
     });
@@ -92,7 +91,7 @@ QUnit.module('logging method');
 
     old.max(objects, 'b');
 
-    // Restore default configuration
+    // Restore default configuration.
     require('../index')(require('../lib/default-config'));
   });
 }());
