@@ -108,7 +108,7 @@ function wrapMethod(oldDash, newDash, name) {
     };
 
     if (!ignoreRename && mapping.rename[name]) {
-      config.log(config.renameTemplate(data));
+      config.log(config.renameMessage(data));
     }
     if (ignoreResult) {
       return oldFunc.apply(that, args);
@@ -127,7 +127,7 @@ function wrapMethod(oldDash, newDash, name) {
           ? !util.isEqual(oldResult, newResult)
           : util.isComparable(newResult)
         ) {
-      config.log(config.migrateTemplate(_.merge(data, {
+      config.log(config.migrateMessage(_.merge(data, {
         'oldData': { 'result': util.truncate(util.inspect(oldResult)) },
         'newData': { 'result': util.truncate(util.inspect(newResult)) }
       })));
