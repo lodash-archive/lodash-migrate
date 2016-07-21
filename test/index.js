@@ -126,38 +126,27 @@ QUnit.test('should not invoke `iteratee` in new lodash', function(assert) {
 QUnit.module('missing methods');
 
 QUnit.test('should not error on legacy `_.callback` use', function(assert) {
-  assert.expect(1);
-
   old.callback('x');
   assert.deepEqual(logs, []);
 });
 
 QUnit.test('should not error on legacy `_.contains` use', function(assert) {
-  assert.expect(1);
-
   old([1, 2, 3]).contains(2);
   assert.deepEqual(logs, [renameText('contains')]);
 });
 
 QUnit.test('should not error on legacy `_.indexBy` use', function(assert) {
-  assert.expect(1);
+  old({ 'a': 'x' }).indexBy(_.identity).value();
 
-  var object = { 'a': 'x' };
-
-  old(object).indexBy(_.identity).value();
   assert.deepEqual(logs, [renameText('indexBy')]);
 });
 
 QUnit.test('should not error on legacy `_#run` use', function(assert) {
-  assert.expect(1);
-
   old(1).run();
   assert.deepEqual(logs, [renameText('run')]);
 });
 
 QUnit.test('should not error on legacy `_.trunc` use', function(assert) {
-  assert.expect(1);
-
   var string = 'abcdef',
     expected = [renameText('trunc'), migrateText('trunc', [string, 3], '...', 'abcdef')];
 
@@ -170,8 +159,6 @@ QUnit.test('should not error on legacy `_.trunc` use', function(assert) {
 QUnit.module('mutator methods');
 
 QUnit.test('should clone arguments before invoking methods', function(assert) {
-  assert.expect(1);
-
   var array = [1, 2, 3];
 
   old.remove(array, function(value) {
@@ -182,8 +169,6 @@ QUnit.test('should clone arguments before invoking methods', function(assert) {
 });
 
 QUnit.test('should not double up on value mutations', function(assert) {
-  assert.expect(1);
-
   var array = [1, 2, 3],
     lastIndex = 0;
 
@@ -202,8 +187,6 @@ QUnit.test('should not double up on value mutations', function(assert) {
 QUnit.module('old.defer');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.defer(_.identity);
   assert.deepEqual(logs, []);
 });
@@ -213,8 +196,6 @@ QUnit.test('should not log', function(assert) {
 QUnit.module('old.delay');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.delay(_.identity, 1);
   assert.deepEqual(logs, []);
 });
@@ -224,8 +205,6 @@ QUnit.test('should not log', function(assert) {
 QUnit.module('old.mixin');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.mixin();
   assert.deepEqual(logs, []);
 });
@@ -235,8 +214,6 @@ QUnit.test('should not log', function(assert) {
 QUnit.module('old.now');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.now();
   assert.deepEqual(logs, []);
 });
@@ -246,8 +223,6 @@ QUnit.test('should not log', function(assert) {
 QUnit.module('old.runInContext');
 
 QUnit.test('should accept a `context` argument', function(assert) {
-  assert.expect(1);
-
   var count = 0;
 
   var now = function() {
@@ -266,15 +241,11 @@ QUnit.test('should accept a `context` argument', function(assert) {
 });
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.runInContext();
   assert.deepEqual(logs, []);
 });
 
 QUnit.test('should wrap results', function(assert) {
-  assert.expect(1);
-
   var lodash = old.runInContext(),
     objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
     expected = migrateText('max', [objects, 'a'], objects[2], objects[0]);
@@ -288,8 +259,6 @@ QUnit.test('should wrap results', function(assert) {
 QUnit.module('old.sample');
 
 QUnit.test('should work when chaining', function(assert) {
-  assert.expect(2);
-
   var array = [1],
     wrapped = old(array);
 
@@ -302,8 +271,6 @@ QUnit.test('should work when chaining', function(assert) {
 QUnit.module('old.times');
 
 QUnit.test('should only invoke `iteratee` in new lodash when it contains a `return` statement', function(assert) {
-  assert.expect(2);
-
   var count= 0;
   old.times(1, function() { count++; });
   assert.strictEqual(count, 1);
@@ -318,8 +285,6 @@ QUnit.test('should only invoke `iteratee` in new lodash when it contains a `retu
 QUnit.module('old.uniqueId');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old.uniqueId();
   assert.deepEqual(logs, []);
 });
@@ -329,8 +294,6 @@ QUnit.test('should not log', function(assert) {
 QUnit.module('old#valueOf');
 
 QUnit.test('should not log', function(assert) {
-  assert.expect(1);
-
   old([1]).valueOf();
   assert.deepEqual(logs, []);
 });
@@ -346,8 +309,6 @@ QUnit.module('logging');
   Foo.prototype.$ = function() {};
 
   QUnit.test('should log when using unsupported static API', function(assert) {
-    assert.expect(1);
-
     var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
       expected = [migrateText('max', [objects, 'b'], objects[2], objects[0])];
 
@@ -356,8 +317,6 @@ QUnit.module('logging');
   });
 
   QUnit.test('should log a specific message once', function(assert) {
-    assert.expect(2);
-
     var foo = new Foo('a'),
       expected = [migrateText('functions', [foo], ['a', '$'], ['a'])];
 
@@ -369,8 +328,6 @@ QUnit.module('logging');
   });
 
   QUnit.test('should not log when both lodashes produce uncomparable values', function(assert) {
-    assert.expect(2);
-
     function Bar(a) { this.a = a; }
     var counter = 0;
 
@@ -388,8 +345,6 @@ QUnit.module('logging');
   });
 
   QUnit.test('should not include ANSI escape codes in logs when in the browser', function(assert) {
-    assert.expect(2);
-
     var paths = [
       '../index.js',
       '../lib/util.js'
