@@ -258,6 +258,19 @@ QUnit.module('old.now');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('old.random');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.random();
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('old.runInContext');
 
 (function() {
