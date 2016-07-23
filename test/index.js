@@ -3,6 +3,7 @@
 var _ = require('../lodash'),
     config = require('../lib/config'),
     mapping = require('../lib/mapping'),
+    migrate = require('../index'),
     old = require('lodash'),
     QUnit = require('qunit-extras'),
     util = require('../lib/util');
@@ -80,20 +81,17 @@ QUnit.module('logging method');
   QUnit.test('should be configurable', function(assert) {
     assert.expect(1);
 
-    // Provide custom logging function.
-    require('../index')({
-      'log': function(message) {
-        assert.deepEqual(message, expected + '\n');
-      }
-    });
-
     var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
         expected = migrateText('max', [objects, 'b'], objects[2], objects[0]);
 
-    old.max(objects, 'b');
+    migrate({
+      'log': function(message) {
+        assert.deepEqual(message, expected);
+      }
+    });
 
-    // Restore default configuration.
-    require('../index')(config);
+    old.max(objects, 'b');
+    migrate(config);
   });
 }());
 
