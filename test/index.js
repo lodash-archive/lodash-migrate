@@ -81,8 +81,8 @@ QUnit.module('logging method');
   QUnit.test('should be configurable', function(assert) {
     assert.expect(1);
 
-    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
-        expected = migrateText('max', [objects, 'b'], objects[2], objects[0]);
+    var objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
+        expected = migrateText('max', [objects, 'a'], objects[2], objects[0]);
 
     migrate({
       'log': function(message) {
@@ -90,7 +90,7 @@ QUnit.module('logging method');
       }
     });
 
-    old.max(objects, 'b');
+    old.max(objects, 'a');
     migrate(config);
   });
 }());
@@ -303,10 +303,10 @@ QUnit.module('old.runInContext');
     assert.expect(1);
 
     var lodash = old.runInContext(),
-        objects = [{ 'a': 1 }, { 'a': 2 }, { 'a': 3 }],
-        expected = migrateText('max', [objects, 'a'], objects[2], objects[0]);
+        objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
+        expected = migrateText('max', [objects, 'b'], objects[2], objects[0]);
 
-    lodash.max(objects, 'a');
+    lodash.max(objects, 'b');
     assert.strictEqual(_.last(logs), expected);
   });
 }());
@@ -404,10 +404,10 @@ QUnit.module('logging');
   QUnit.test('should log when using unsupported static API', function(assert) {
     assert.expect(1);
 
-    var objects = [{ 'b': 1 }, { 'b': 2 }, { 'b': 3 }],
-        expected = [migrateText('max', [objects, 'b'], objects[2], objects[0])];
+    var objects = [{ 'c': 1 }, { 'c': 2 }, { 'c': 3 }],
+        expected = [migrateText('max', [objects, 'c'], objects[2], objects[0])];
 
-    old.max(objects, 'b');
+    old.max(objects, 'c');
     assert.deepEqual(logs, expected);
   });
 
