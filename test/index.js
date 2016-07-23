@@ -318,6 +318,13 @@ QUnit.module('old.runInContext');
 QUnit.module('old.sample');
 
 (function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.sample([1, 2, 3]);
+    assert.deepEqual(logs, []);
+  });
+
   QUnit.test('should work when chaining', function(assert) {
     assert.expect(2);
 
@@ -326,6 +333,19 @@ QUnit.module('old.sample');
 
     assert.strictEqual(wrapped.sample(), 1);
     assert.deepEqual(wrapped.sample(1).value(), [1]);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
+QUnit.module('old.shuffle');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old.shuffle([1, 2, 3]);
+    assert.deepEqual(logs, []);
   });
 }());
 
