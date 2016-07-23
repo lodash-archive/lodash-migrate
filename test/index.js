@@ -397,9 +397,9 @@ QUnit.module('logging');
 
 (function() {
   function Foo(key) {
-    this[key] = function() {};
+    this[key] = _.noop;
   }
-  Foo.prototype.$ = function() {};
+  Foo.prototype.$ = _.noop;
 
   QUnit.test('should log when using unsupported static API', function(assert) {
     assert.expect(1);
