@@ -1,8 +1,9 @@
 'use strict';
 
 var _ = require('../lodash'),
-    old = require('lodash'),
+    config = require('../lib/config'),
     mapping = require('../lib/mapping'),
+    old = require('lodash'),
     QUnit = require('qunit-extras'),
     util = require('../lib/util');
 
@@ -92,7 +93,7 @@ QUnit.module('logging method');
     old.max(objects, 'b');
 
     // Restore default configuration.
-    require('../index')(require('../lib/default-config'));
+    require('../index')(config);
   });
 }());
 

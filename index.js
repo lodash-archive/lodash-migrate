@@ -1,14 +1,13 @@
 'use strict';
 
 var _ = require('./lodash'),
-    old = require('lodash');
-
-var listing = require('./lib/listing'),
+    config = _.clone(require('./lib/config')),
+    listing = require('./lib/listing'),
     mapping = require('./lib/mapping'),
+    old = require('lodash'),
     util = require('./lib/util');
 
-var config = _.clone(require('./lib/default-config')),
-    reHasReturn = /\breturn\b/;
+var reHasReturn = /\breturn\b/;
 
 /*----------------------------------------------------------------------------*/
 
