@@ -1,6 +1,6 @@
 {
   "name": "lodash-migrate",
-  "version": "0.2.26",
+  "version": "0.3.0",
   "description": "Migrate to the latest Lodash release.",
   "keywords": "compatibility, lodash, update",
   "repository": "lodash/lodash-migrate",
