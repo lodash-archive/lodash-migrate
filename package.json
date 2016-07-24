@@ -28,6 +28,7 @@
   "files": [
     "dist/lodash-migrate.js",
     "dist/lodash-migrate.min.js",
+    "lib/config.js",
     "lib/listing.js",
     "lib/mapping.js",
     "lib/util.js",
