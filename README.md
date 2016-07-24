@@ -19,14 +19,18 @@ In a browser:
 
 In Node.js:
 ```js
-// load the older lodash
+// Load the older Lodash.
 var _ = require('lodash');
-// then load lodash-migrate
+// Load lodash-migrate.
 require('lodash-migrate');
-// or load the older lodash using lodash-migrate
-var _ = require('lodash-migrate');
+// Load and customize logging.
+require('lodash-migrate')({
+  'log': logger,
+  'migrateMessage': migrateTemplate,
+  'renameMessage': renameTemplate
+});
 
-// later when using API not supported by the latest lodash release
+// Later when using API not supported by the latest release.
 _.max(['13', '22'], '1');
 // => logs:
 // lodash-migrate: _.max([ '13', '22' ], '1')
