@@ -1,4 +1,4 @@
-# lodash-migrate v0.3.0
+# lodash-migrate v0.3.1
 
 Migrate older [Lodash](https://lodash.com/) code to the latest release.
 
@@ -38,4 +38,4 @@ _.max(['13', '22'], '1');
 //   v4.14.1 => '22'
 ```
 
-See the [package source](https://github.com/lodash/lodash-migrate/tree/0.3.0) for more details.
+See the [package source](https://github.com/lodash/lodash-migrate/tree/0.3.1) for more details.
