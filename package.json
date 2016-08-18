@@ -23,7 +23,7 @@
     "lodash": "^3.10.1",
     "qunit-extras": "^2.1.0",
     "qunitjs": "^2.0.1",
-    "webpack": "^1.13.1"
+    "webpack": "^1.13.2"
   },
   "files": [
     "dist/lodash-migrate.js",
