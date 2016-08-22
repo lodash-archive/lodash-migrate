@@ -6,8 +6,8 @@ Migrate older [Lodash](https://lodash.com/) code to the latest release.
 
 Using npm:
 
-```bash
-$ {sudo -H} npm i -g npm
+```shell
+$ npm i -g npm
 $ npm i lodash-migrate
 ```
 
