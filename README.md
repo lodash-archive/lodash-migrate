@@ -37,5 +37,3 @@ _.max(['13', '22'], '1');
 //   v3.10.1 => '13'
 //   v4.16.0 => '22'
 ```
-
-See the [package source](https://github.com/lodash/lodash-migrate/tree/0.3.4) for more details.
