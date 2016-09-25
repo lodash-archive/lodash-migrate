@@ -210,13 +210,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var undefined;
 
 	  /** Used as the semantic version number. */
-	  var VERSION = '4.16.1';
+	  var VERSION = '4.16.2';
 
 	  /** Used as the size to enable large array optimizations. */
 	  var LARGE_ARRAY_SIZE = 200;
 
-	  /** Used as the `TypeError` message for "Functions" methods. */
-	  var FUNC_ERROR_TEXT = 'Expected a function';
+	  /** Error message constants. */
+	  var CORE_ERROR_TEXT = 'Unsupported core-js use. Try https://github.com/es-shims.',
+	      FUNC_ERROR_TEXT = 'Expected a function';
 
 	  /** Used to stand-in for `undefined` hash values. */
 	  var HASH_UNDEFINED = '__lodash_hash_undefined__';
@@ -1665,6 +1666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var Buffer = moduleExports ? context.Buffer : undefined,
 	        Symbol = context.Symbol,
 	        Uint8Array = context.Uint8Array,
+	        allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined,
 	        defineProperty = Object.defineProperty,
 	        getPrototype = overArg(Object.getPrototypeOf, Object),
 	        iteratorSymbol = Symbol ? Symbol.iterator : undefined,
@@ -1850,6 +1852,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      return new LodashWrapper(value);
 	    }
+
+	    /**
+	     * The base implementation of `_.create` without support for assigning
+	     * properties to the created object.
+	     *
+	     * @private
+	     * @param {Object} proto The object to inherit from.
+	     * @returns {Object} Returns the new object.
+	     */
+	    var baseCreate = (function() {
+	      function object() {}
+	      return function(proto) {
+	        if (!isObject(proto)) {
+	          return {};
+	        }
+	        if (objectCreate) {
+	          return objectCreate(proto);
+	        }
+	        object.prototype = prototype;
+	        var result = new object;
+	        object.prototype = undefined;
+	        return result;
+	      };
+	    }());
 
 	    /**
 	     * The function whose prototype chain sequence wrappers inherit from.
@@ -2571,8 +2597,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
-	     * A specialized version of `_.sample` for arrays without support for iteratee
-	     * shorthands.
+	     * A specialized version of `_.sample` for arrays.
 	     *
 	     * @private
 	     * @param {Array} array The array to sample.
@@ -2592,9 +2617,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @returns {Array} Returns the random elements.
 	     */
 	    function arraySampleSize(array, n) {
-	      var result = arrayShuffle(array);
-	      result.length = baseClamp(n, 0, result.length);
-	      return result;
+	      return shuffleSelf(copyArray(array), n);
 	    }
 
 	    /**
@@ -2882,18 +2905,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      }
 	      return true;
-	    }
-
-	    /**
-	     * The base implementation of `_.create` without support for assigning
-	     * properties to the created object.
-	     *
-	     * @private
-	     * @param {Object} prototype The object to inherit from.
-	     * @returns {Object} Returns the new object.
-	     */
-	    function baseCreate(proto) {
-	      return isObject(proto) ? objectCreate(proto) : {};
 	    }
 
 	    /**
@@ -4088,6 +4099,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
+	     * The base implementation of `_.sample`.
+	     *
+	     * @private
+	     * @param {Array|Object} collection The collection to sample.
+	     * @returns {*} Returns the random element.
+	     */
+	    function baseSample(collection) {
+	      return arraySample(values(collection));
+	    }
+
+	    /**
+	     * The base implementation of `_.sampleSize` without param guards.
+	     *
+	     * @private
+	     * @param {Array|Object} collection The collection to sample.
+	     * @param {number} n The number of elements to sample.
+	     * @returns {Array} Returns the random elements.
+	     */
+	    function baseSampleSize(collection, n) {
+	      return shuffleSelf(values(collection), n);
+	    }
+
+	    /**
 	     * The base implementation of `_.set`.
 	     *
 	     * @private
@@ -4156,6 +4190,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'writable': true
 	      });
 	    };
+
+	    /**
+	     * The base implementation of `_.shuffle`.
+	     *
+	     * @private
+	     * @param {Array|Object} collection The collection to shuffle.
+	     * @returns {Array} Returns the new shuffled array.
+	     */
+	    function baseShuffle(collection) {
+	      return shuffleSelf(values(collection));
+	    }
 
 	    /**
 	     * The base implementation of `_.slice` without an iteratee call guard.
@@ -4619,7 +4664,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (isDeep) {
 	        return buffer.slice();
 	      }
-	      var result = new buffer.constructor(buffer.length);
+	      var length = buffer.length,
+	          result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+
 	      buffer.copy(result);
 	      return result;
 	    }
@@ -6731,24 +6778,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
-	     * A specialized version of `arrayShuffle` which mutates `array`.
+	     * A specialized version of `_.shuffle` which mutates and sets the size of `array`.
 	     *
 	     * @private
 	     * @param {Array} array The array to shuffle.
+	     * @param {number} [size=array.length] The size of `array`.
 	     * @returns {Array} Returns `array`.
 	     */
-	    function shuffleSelf(array) {
+	    function shuffleSelf(array, size) {
 	      var index = -1,
 	          length = array.length,
 	          lastIndex = length - 1;
 
-	      while (++index < length) {
+	      size = size === undefined ? length : baseClamp(size, 0, length);
+	      while (++index < size) {
 	        var rand = baseRandom(index, lastIndex),
 	            value = array[rand];
 
 	        array[rand] = array[index];
 	        array[index] = value;
 	      }
+	      array.length = size;
 	      return array;
 	    }
 
@@ -9826,7 +9876,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => 2
 	     */
 	    function sample(collection) {
-	      return arraySample(isArrayLike(collection) ? collection : values(collection));
+	      var func = isArray(collection) ? arraySample : baseSample;
+	      return func(collection);
 	    }
 
 	    /**
@@ -9855,7 +9906,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else {
 	        n = toInteger(n);
 	      }
-	      return arraySampleSize(isArrayLike(collection) ? collection : values(collection), n);
+	      var func = isArray(collection) ? arraySampleSize : baseSampleSize;
+	      return func(collection, n);
 	    }
 
 	    /**
@@ -9874,10 +9926,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * // => [4, 1, 3, 2]
 	     */
 	    function shuffle(collection) {
-	      return shuffleSelf(isArrayLike(collection)
-	        ? copyArray(collection)
-	        : values(collection)
-	      );
+	      var func = isArray(collection) ? arrayShuffle : baseShuffle;
+	      return func(collection);
 	    }
 
 	    /**
@@ -11976,7 +12026,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    function isNative(value) {
 	      if (isMaskable(value)) {
-	        throw new Error('This method is not supported with core-js. Try https://github.com/es-shims.');
+	        throw new Error(CORE_ERROR_TEXT);
 	      }
 	      return baseIsNative(value);
 	    }
@@ -14469,7 +14519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      } else if (radix) {
 	        radix = +radix;
 	      }
-	      return nativeParseInt(toString(string), radix || 0);
+	      return nativeParseInt(toString(string).replace(reTrimStart, ''), radix || 0);
 	    }
 
 	    /**
