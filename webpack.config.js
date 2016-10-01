@@ -6,7 +6,7 @@ var _ = require('./lodash'),
 
 var config = {
   'output': {
-    'library': '_',
+    'library': 'migrate',
     'libraryTarget': 'umd'
   }
 };
