@@ -13,8 +13,16 @@ $ npm i lodash-migrate
 
 In a browser:
 ```html
-<!-- replace lodash.js with lodash-migrate.js -->
+<!-- Replace lodash.js with lodash-migrate.js. -->
 <script src="path/to/dist/lodash-migrate.js"></script>
+<!-- Customize logging. -->
+<script>
+migrate({
+  'log': logger,
+  'migrateMessage': migrateTemplate,
+  'renameMessage': renameTemplate
+});
+</script>
 ```
 
 In Node.js:
