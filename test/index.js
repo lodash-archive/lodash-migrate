@@ -230,6 +230,19 @@ QUnit.module('old.delay');
 
 /*----------------------------------------------------------------------------*/
 
+QUnit.module('old#join');
+
+(function() {
+  QUnit.test('should not log', function(assert) {
+    assert.expect(1);
+
+    old([1]).join();
+    assert.deepEqual(logs, []);
+  });
+}());
+
+/*----------------------------------------------------------------------------*/
+
 QUnit.module('old.mixin');
 
 (function() {
