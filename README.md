@@ -1,4 +1,4 @@
-# lodash-migrate v0.3.9
+# lodash-migrate v0.3.10
 
 Migrate older [Lodash](https://lodash.com/) code to the latest release.
 
