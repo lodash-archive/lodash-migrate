@@ -21,7 +21,7 @@
   "devDependencies": {
     "lodash": "^3.10.1",
     "qunit-extras": "^3.0.0",
-    "qunitjs": "^2.1.0",
+    "qunitjs": "^2.1.1",
     "webpack": "^1.14.0"
   },
   "files": [
