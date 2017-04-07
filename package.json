@@ -19,7 +19,7 @@
     "test": "node test"
   },
   "devDependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "^4.16.6",
     "qunit-extras": "^3.0.0",
     "qunitjs": "^2.1.0",
     "webpack": "^1.14.0"
